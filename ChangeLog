@@ -1,3 +1,7 @@
+2016-01-26 Daniel Goujot 
+
+	* Starting adding patches to allow editing of posted times of transactions.
+
 2016-01-10 John Ralls 
 
 	* Release 2.6.11 (HEAD, maint)
