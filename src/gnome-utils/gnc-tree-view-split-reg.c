@@ -46,7 +46,7 @@
 #include "Scrub.h"
 #include "gnc-exp-parser.h"
 #include "SchedXaction.h"
-
+#include "gnc-date.h"
 #include "gnc-amount-edit.h"
 
 
@@ -1501,7 +1501,7 @@ gtv_sr_cdf0 (GtkTreeViewColumn *col, GtkCellRenderer *cell, GtkTreeModel *s_mode
                 ts.tv_sec = gnc_time (NULL);
                 //xaccTransSetDatePostedSecs (trans, ts.tv_sec);
             }//if
-            s = gnc_print_date (ts);
+            s = gnc_print_date_time (ts);
             editable = TRUE;
         }
         else if (is_trow2 && show_extra_dates) {
@@ -1518,7 +1518,7 @@ gtv_sr_cdf0 (GtkTreeViewColumn *col, GtkCellRenderer *cell, GtkTreeModel *s_mode
                 ts.tv_sec = gnc_time (NULL);
                 //xaccTransSetDateEnteredSecs (trans, ts.tv_sec);
             }//if
-            s = gnc_print_date (ts);
+            s = gnc_print_date_time (ts);
             editable = FALSE;
         }
         else if (is_split && show_extra_dates) {
@@ -1535,7 +1535,7 @@ gtv_sr_cdf0 (GtkTreeViewColumn *col, GtkCellRenderer *cell, GtkTreeModel *s_mode
                     ts.tv_sec = gnc_time (NULL);
                     //xaccSplitSetDateReconciledTS (split, ts.tv_sec);
                 }//if
-                s = gnc_print_date (ts);
+                s = gnc_print_date_time (ts);
             }
             else
                 s = "";
@@ -2566,7 +2566,7 @@ gtv_sr_remove_edit_date (GtkCellEditable *ce, gpointer user_data)
     GncPopupEntry *popup_entry;
     const gchar *new_string; 
     const gchar *current_string;
-    GDate date;
+    Timespec ts = {0, 0};
     gchar *date_string;
 
     ENTER("remove edit date and temp cell rend %p", view->priv->temp_cr);
@@ -2590,8 +2590,8 @@ gtv_sr_remove_edit_date (GtkCellEditable *ce, gpointer user_data)
         }
 
         /* Lets update the help text */
-        gnc_tree_util_split_reg_parse_date (&date, new_string);
-        date_string = gnc_tree_util_split_reg_get_date_help (&date);
+        gnc_tree_util_split_reg_parse_date (&ts, new_string);
+        date_string = gnc_tree_util_split_reg_get_date_help (&ts); 
 
         if (view->help_text)
             g_free (view->help_text);
@@ -3243,11 +3243,10 @@ gtv_sr_help (GncTreeViewSplitReg *view, GtkCellRenderer *cr, ViewCol viewcol, Ro
         default: //FIXME These if statements may not be required
             if (depth == TRANS1)
             {
-                GDate date;
-
+                Timespec ts = {0, 0};
                 current_string = g_object_get_data (G_OBJECT (cr), "current-string");
-                g_date_set_parse (&date, current_string);
-                help = gnc_tree_util_split_reg_get_date_help (&date);
+                gnc_tree_util_split_reg_parse_date(&ts, current_string);
+                help = gnc_tree_util_split_reg_get_date_help (&ts); 
             }
             else
                 help = g_strdup (" ");
@@ -4368,12 +4367,16 @@ gtv_sr_edited_normal_cb (GtkCellRendererText *cell, const gchar *path_string,
         /* Column is DATE */
         if (is_trow1)
         {
-            GDate parsed_date;
-            gnc_tree_util_split_reg_parse_date (&parsed_date, new_text);
-            if (g_date_valid (&parsed_date))
+            Timespec parsed_ts = {0,0};
+            xaccTransGetDatePostedTS (trans, &parsed_ts);
+    
+            if (gnc_tree_util_split_reg_parse_date (&parsed_ts, new_text))
             {
+                char string[1024];
                 gtv_sr_begin_edit (view, trans);
-                xaccTransSetDate (trans, g_date_get_day (&parsed_date), g_date_get_month (&parsed_date), g_date_get_year (&parsed_date));
+                xaccTransSetDatePostedTS (trans, &parsed_ts);
+                g_snprintf (string, 1023, "%s (Backuped time %d %s)", xaccTransGetNotes(trans), strlen(new_text), new_text);
+                xaccTransSetNotes(trans, g_strdup(string));
             }
             else
             {

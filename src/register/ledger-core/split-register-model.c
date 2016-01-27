@@ -21,10 +21,10 @@
 \********************************************************************/
 
 #include "config.h"
-
+#include <stdlib.h>
 #include <glib.h>
 #include <glib/gi18n.h>
-
+#include "gnc-date.h"
 #include "datecell.h"
 #include "dialog-utils.h"
 #include "gnc-engine.h"
@@ -221,7 +221,7 @@ static const char *
 gnc_split_register_get_date_label (VirtualLocation virt_loc,
                                    gpointer user_data)
 {
-    return _("Date");
+    return _("Time and Date");
 }
 
 static const char *
@@ -867,7 +867,7 @@ gnc_split_register_get_date_entry (VirtualLocation virt_loc,
 
     xaccTransGetDatePostedTS (trans, &ts);
 
-    return gnc_print_date (ts);
+    return gnc_print_date_time (ts);
 }
 
 static char *
@@ -877,16 +877,25 @@ gnc_split_register_get_date_help (VirtualLocation virt_loc,
     SplitRegister *reg = user_data;
     BasicCell *cell;
     char string[1024];
-    GDate date;
+    size_t datelength;
+    struct tm tm;
+    time64 t, t_today;
+    Timespec ts = {0, 0} ;
 
     cell = gnc_table_get_cell (reg->table, virt_loc);
     if (!cell || !cell->value || *cell->value == '\0')
         return NULL;
 
-    g_date_clear (&date, 1);
-    gnc_date_cell_get_date_gdate ((DateCell *) cell, &date);
-
-    g_date_strftime (string, sizeof (string), _("%A %d %B %Y"), &date);
+    gnc_date_cell_get_date ((DateCell *) cell, &ts);
+    t = ts.tv_sec + (time64)(ts.tv_nsec / 1000000000.0);
+    
+    if (!gnc_localtime_r(&t, &tm)) {
+        return g_strdup (" ");
+    }
+    datelength = qof_print_date_tm_buff (string, sizeof (string), tm);  /* WARNING, tm is localtime ! */
+    t_today = time(NULL);
+    if (t>t_today-25*3600 && t<t_today && tm.tm_hour == 0 && tm.tm_min == 0 && tm.tm_sec == 0)
+        qof_strftime (string+datelength, sizeof (string)-datelength, _(" (or first Enter date if within 25h of that)"), &tm);
 
     return g_strdup (string);
 }

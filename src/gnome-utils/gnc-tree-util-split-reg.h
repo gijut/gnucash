@@ -53,9 +53,9 @@ const char * gnc_tree_util_split_reg_template_get_fdebt_entry (Split *split);
 
 const char * gnc_tree_util_split_reg_template_get_fcred_entry (Split *split);
 
-gchar * gnc_tree_util_split_reg_get_date_help (GDate *date);
+gchar * gnc_tree_util_split_reg_get_date_help (Timespec *date);
 
-void gnc_tree_util_split_reg_parse_date (GDate *parsed, const char *datestr);
+int gnc_tree_util_split_reg_parse_date (Timespec *ts, const char *datestr);
 
 gboolean gnc_tree_util_split_reg_rotate (GncTreeViewSplitReg *view, GtkTreeViewColumn *col,
                                          Transaction *trans, Split *split);

@@ -1934,7 +1934,7 @@ xaccTransSetDatePostedGDate (Transaction *trans, GDate date)
     qof_instance_set_kvp (QOF_INSTANCE(trans), TRANS_DATE_POSTED, &v);
     /* mark dirty and commit handled by SetDateInternal */
     xaccTransSetDateInternal(trans, &trans->date_posted,
-                             gdate_to_timespec(date));
+                             gdate_to_timespec1100Z(date));
     set_gains_date_dirty (trans);
 }
 
@@ -1942,8 +1942,21 @@ void
 xaccTransSetDateEnteredSecs (Transaction *trans, time64 secs)
 {
     Timespec ts = {secs, 0};
+    struct tm tm;
+    time64 t_posted;
+    
+    
     if (!trans) return;
     xaccTransSetDateInternal(trans, &trans->date_entered, ts);
+    
+    if (!trans) return;
+    xaccTransSetDateInternal(trans, &trans->date_entered, ts);
+    t_posted = xaccTransGetDate (trans);/* will next return something else wether conditions below match. */
+    if (gnc_localtime_r(&t_posted, &tm)) {/* gnc_localtime_r does not seem to use timezones */
+        if (t_posted>secs-14*3600 && t_posted<secs+11*3600 && tm.tm_hour == 11 && tm.tm_min == 0 && tm.tm_sec == 0) {
+            xaccTransSetDatePostedTS(trans, &ts) ;
+        }
+    }
 }
 
 static void

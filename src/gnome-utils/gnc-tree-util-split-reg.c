@@ -422,17 +422,31 @@ gnc_tree_util_split_reg_template_get_fcred_entry (Split *split)
 
 
 gchar *
-gnc_tree_util_split_reg_get_date_help (GDate *date)
+gnc_tree_util_split_reg_get_date_help (Timespec *ts)
 {
     char string[1024];
-    struct tm tm;
-
-    if (g_date_valid (date))
-    {
-        struct tm tm;
-        memset (&tm, 0, sizeof (tm));
-        g_date_to_struct_tm (date, &tm);
-        qof_strftime (string, sizeof (string), _("%A %d %B %Y"), &tm);
+    struct tm tm; /* tm was unused in gnucash-2.6.5/src/gnome-utils/gnc-tree-util-split-reg.c line 452 */
+    time64 t, t_today, t_localtime;
+    int written;
+    
+    
+    int tz; /* signed timezone in HHMM format */
+    char *TZname;
+    gchar * TZenv;
+    TZenv = g_strdup(g_getenv("TZ")); /* TZ should exist in env ! */
+    TZname = strtok (TZenv,"+-");
+    tz = atoi(strtok(NULL," ")) ;
+    g_free(TZenv);
+ 
+    memset (&tm, 0, sizeof (tm));
+    t = ts->tv_sec + (time64)(ts->tv_nsec / 1000000000.0);
+    t_localtime = t + 3600*(tz>0 ? 1 : -1)*((tz > 0 ? tz : -tz)/100)
+        + 60*(tz - (tz>0 ? 1 : -1)*((tz > 0 ? tz : -tz)/100)*100); /* WARNING, t_localtime is localtime ! */
+    if (gnc_localtime_r(&t_localtime, &tm)) { t_today = time(NULL);  /* WARNING, tm is localtime ! */
+        written = g_snprintf (string, sizeof (string), "%+05d ", tz);// the left part of the string is the one hidden whenever the column is too small.
+        written += qof_strftime (string + written, sizeof (string) - written, _("%H:%M:%S %A %d %B %Y"), &tm);  /* WARNING, tm is localtime ! */
+        if (t>t_today-14*3600 && t<t_today+11*3600 && tm.tm_hour == 11 && tm.tm_min == 0 && tm.tm_sec == 0)
+            g_snprintf (string + written, sizeof (string) - written, _(" (or first Enter date if withing 25h of that)"));
         return g_strdup (string);
     }
     else
@@ -440,56 +454,18 @@ gnc_tree_util_split_reg_get_date_help (GDate *date)
 }
 
 
-void
-gnc_tree_util_split_reg_parse_date (GDate *parsed, const char *datestr)
+int
+gnc_tree_util_split_reg_parse_date (Timespec *ts, const char *datestr)
 {
-    int day, month, year;
     gboolean use_autoreadonly = qof_book_uses_autoreadonly (gnc_get_current_book ());
+    struct tm tm;
+    if (!ts) return 1==0;
+    if (!datestr) return 1==0;
+    gnc_parse_time_date (&tm, datestr);/* tm is UTC */
+    ts->tv_sec = gnc_mktime (&tm);
+    ts->tv_nsec = 0;
 
-    if (!parsed) return;
-    if (!datestr) return;
-
-    if (!qof_scan_date (datestr, &day, &month, &year))
-    {
-        // Couldn't parse date, use today
-        struct tm tm_today;
-        gnc_tm_get_today_start (&tm_today);
-        day = tm_today.tm_mday;
-        month = tm_today.tm_mon + 1;
-        year = tm_today.tm_year + 1900;
-    }
-
-    // If we have an auto-read-only threshold, do not accept a date that is
-    // older than the threshold.
-    if (use_autoreadonly)
-    {
-        GDate *d = g_date_new_dmy (day, month, year);
-        GDate *readonly_threshold = qof_book_get_autoreadonly_gdate (gnc_get_current_book());
-        if (g_date_compare (d, readonly_threshold) < 0)
-        {
-            g_warning("Entered date %s is before the \"auto-read-only threshold\"; resetting to the threshold.", datestr);
-#if 0
-            GtkWidget *dialog = gtk_message_dialog_new (NULL,
-                                                       0,
-                                                       GTK_MESSAGE_ERROR,
-                                                       GTK_BUTTONS_OK,
-                                                       "%s", _("Cannot store a transaction at this date"));
-            gtk_message_dialog_format_secondary_text (GTK_MESSAGE_DIALOG (dialog),
-                                                     "%s", _("The entered date of the new transaction is older than the \"Read-Only Threshold\" set for this book. "
-                                                             "This setting can be changed in File -> Properties -> Accounts."));
-            gtk_dialog_run (GTK_DIALOG (dialog));
-            gtk_widget_destroy (dialog);
-#endif
-
-            // Reset the date to the threshold date
-            day = g_date_get_day (readonly_threshold);
-            month = g_date_get_month (readonly_threshold);
-            year = g_date_get_year (readonly_threshold);
-        }
-        g_date_free (d);
-        g_date_free (readonly_threshold);
-    }
-    g_date_set_dmy (parsed, day, month, year);
+    return tm.tm_year>0;
 }
 
 

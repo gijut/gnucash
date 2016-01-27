@@ -103,7 +103,7 @@ GType timespec_get_type( void );
 extern const char *gnc_default_strftime_date_format;
 
 /** The maximum length of a string created by the date printers */
-#define MAX_DATE_LENGTH 34
+#define MAX_DATE_LENGTH (34+16) /* +16 because +0000 HH:MM:SS added in gnc_print_date_time_buff( ) */
 
 /** Constants *******************************************************/
 /** \brief UTC date format string.
@@ -334,6 +334,9 @@ GDate timespec_to_gdate (Timespec ts);
 /** Turns a GDate into a Timespec, returning the first second of the day  */
 Timespec gdate_to_timespec (GDate d);
 
+/** Turns a GDate into a Timespec, returning 11:00 AM of the day UTC  */
+Timespec gdate_to_timespec1100Z (GDate d);
+
 
 /** Convert a day, month, and year to a Timespec, returning the first second of the day */
 Timespec gnc_dmy2timespec (gint day, gint month, gint year);
@@ -483,6 +486,31 @@ gchar dateSeparator(void);
  */
 gsize qof_strftime(gchar *buf, gsize max, const gchar *format,
                    const struct tm *tm);
+
+/* qof_print_date_tm_buff  Convert hour, minute, second, day, month and year values to a date string in UTC +0000 timezone.
+
+  Date converted as day / month / year integers into a localized string
+  representation with qof_print_date_dmy_buff; Time converted in 24h format.
+
+param   buff - pointer to previously allocated character array; its size
+         must be at lease MAX_DATE_LENGTH bytes.
+param   date - struct tm with the time and date
+
+return length of string created in buff.
+
+Globals: global dateFormat value
+*/
+size_t qof_print_date_tm_buff (char * buff, size_t len, struct tm date);
+/*  does the real job of qof_print_date_tm_buff: */ 
+size_t gnc_print_date_time_buff (char * buff, size_t len, time64 t);
+
+/*   gnc_parse_time_date parsing tm (+0000) (from %+05d %d:%d:%d then the date) in datestr */
+void gnc_parse_time_date (struct tm *parsed, const char * datestr) ;
+/* gnc_print_date_time  Convert hour, minute, second, day, month and year values to a date string in UTC +0000 timezone.
+
+  Date converted as day / month / year integers into a localized string
+  representation with qof_print_date_buff; Time converted in 24h format. */
+const char * gnc_print_date_time (Timespec ts) ;
 
 /** qof_print_date_dmy_buff
  *    Convert a date as day / month / year integers into a localized string

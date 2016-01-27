@@ -103,8 +103,8 @@ gnc_localtime (const time64 *secs)
     auto time = static_cast<struct tm*>(calloc(1, sizeof(struct tm)));
     if (gnc_localtime_r (secs, time) == NULL)
     {
-	gnc_tm_free (time);
-	return NULL;
+								gnc_tm_free (time);
+								return NULL;
     }
     return time;
 }
@@ -114,12 +114,12 @@ gnc_localtime_r (const time64 *secs, struct tm* time)
 {
     try
     {
-	*time = static_cast<struct tm>(GncDateTime(*secs));
-	return time;
+								*time = static_cast<struct tm>(GncDateTime(*secs));
+								return time;
     }
     catch(std::invalid_argument)
     {
-	return NULL;
+								return NULL;
     }
 }
 
@@ -186,14 +186,14 @@ gnc_gmtime (const time64 *secs)
 {
     try
     {
-	auto time = static_cast<struct tm*>(calloc(1, sizeof(struct tm)));
-	GncDateTime gncdt(*secs);
-	*time = gncdt.utc_tm();
-	return time;
+								auto time = static_cast<struct tm*>(calloc(1, sizeof(struct tm)));
+								GncDateTime gncdt(*secs);
+								*time = gncdt.utc_tm();
+								return time;
     }
     catch(std::invalid_argument)
     {
-	return NULL;
+								return NULL;
     }
 
 }
@@ -203,13 +203,13 @@ gnc_mktime (struct tm* time)
 {
     try
     {
-	normalize_struct_tm (time);
-	GncDateTime gncdt(*time);
-	return static_cast<time64>(gncdt) - gncdt.offset();
+								normalize_struct_tm (time);
+								GncDateTime gncdt(*time);
+								return static_cast<time64>(gncdt) - gncdt.offset();
     }
     catch(std::invalid_argument)
     {
-	return 0;
+								return 0;
     }
 }
 
@@ -218,12 +218,12 @@ gnc_timegm (struct tm* time)
 {
     try
     {
-	normalize_struct_tm(time);
-	return static_cast<time64>(GncDateTime(*time));
+								normalize_struct_tm(time);
+								return static_cast<time64>(GncDateTime(*time));
     }
     catch(std::invalid_argument)
     {
-	return 0;
+								return 0;
     }
 
 }
@@ -592,6 +592,28 @@ const gchar *qof_date_text_format_get_string(QofDateFormat df)
     return GNC_D_FMT;
 }
 
+/* Convert hour, minute, second, day, month and year values to a date string in UTC +0000 timezone.
+
+  Date converted as day / month / year integers into a localized string
+  representation with qof_print_date_dmy_buff; Time converted in 24h format.
+
+param   buff - pointer to previously allocated character array; its size
+         must be at lease MAX_DATE_LENGTH bytes.
+param   date - struct tm with the time and date
+
+return length of string created in buff.
+
+Globals: global dateFormat value*/
+size_t
+qof_print_date_tm_buff (char * buff, size_t len, struct tm date)
+{
+    return gnc_print_date_time_buff (buff, len, gnc_mktime(& date));
+}
+
+return length of string created in buff.
+
+Globals: global dateFormat value
+*/
 size_t
 qof_print_date_dmy_buff (char * buff, size_t len, int day, int month, int year)
 {
@@ -601,7 +623,7 @@ qof_print_date_dmy_buff (char * buff, size_t len, int day, int month, int year)
     std::string str = date.format(qof_date_format_get_string(dateFormat));
     strncpy(buff, str.c_str(), len);
     if (str.length() >= len)
-	buff[len - 1] = '\0';
+								buff[len - 1] = '\0';
     return strlen(buff);
 }
 
@@ -614,7 +636,7 @@ qof_print_date_buff (char * buff, size_t len, time64 t)
     std::string str = gncdt.format(qof_date_format_get_string(dateFormat));
     strncpy(buff, str.c_str(), len);
     if (str.length() >= len)
-	buff[len - 1] = '\0';
+								buff[len - 1] = '\0';
     return strlen(buff);
 }
 
@@ -637,6 +659,55 @@ qof_print_date (time64 t)
     memset (buff, 0, sizeof (buff));
     qof_print_date_buff (buff, MAX_DATE_LENGTH, t);
     return g_strdup (buff);
+}
+
+const char *
+gnc_print_date_time (Timespec ts)
+{
+    static char buff[MAX_DATE_LENGTH];
+    time64 t;
+    memset (buff, 0, sizeof (buff));
+    t = ts.tv_sec + (time64)(ts.tv_nsec / 1000000000.0);
+
+    gnc_print_date_time_buff (buff, MAX_DATE_LENGTH-1, t);
+/* not sure if -1 is necessary */
+
+    return buff;
+}
+
+size_t
+gnc_print_date_time_buff (char * buff, size_t len, time64 t)
+/* at the same time than gnc_parse_time_date is based on a call on GncDateTime and all calls on TZenv = g_strdup(g_getenv("TZ")) are destroyed, replace definition of gnc_print_date_time_buff by
+ *  if (!buff) return 0;
+
+    GncDateTime gncdt(t);
+    std::string str = gncdt.format_time("%Z %H:%M:%S " + qof_date_format_get_string(dateFormat));
+    strncpy(buff, str.c_str(), len);
+    if (str.length() >= len)
+								buff[len - 1] = '\0';
+    return strlen(buff); */
+{
+/* replace this call by GncDateTime gncdt(t) when all TZenv code will disappear*/
+    struct tm theTime;
+    size_t timelength;
+    time64 bt;
+    int tz; /* signed timezone in HHMM format */
+    char *TZname;
+    gchar * TZenv;
+    TZenv = g_strdup(g_getenv("TZ")); /* TZ should exist in env ! */
+    TZname = strtok (TZenv,"+-"); /* TODO: call gnc_g_date_time_new_from_timespec_* ? */
+    tz = atoi(strtok(NULL," ")) ;
+    g_free(TZenv);
+    
+    t += 3600*(tz>0 ? 1 : -1)*(abs(tz)/100)
+        + 60*(tz - (tz>0 ? 1 : -1)*(abs(tz)/100)*100);
+    bt = t;
+    if (!gnc_localtime_r(&bt, &theTime)) /* t and theTime are both *local* time */
+	return 0;
+    
+    timelength = g_snprintf (buff, len, "%+05d %02d:%02d:%02d ", tz, theTime.tm_hour, theTime.tm_min, theTime.tm_sec);// the left part of the string is the one hidden whenever the column is too small.
+
+    timelength += qof_print_date_buff (buff+timelength, len-timelength, t);// TODO mettre timelength au lieu de 9 !
 }
 
 const char *
@@ -670,279 +741,382 @@ floordiv(int a, int b)
     }
 }
 
-/* Convert a string into  day, month and year integers
+/*   gnc_parse_time_date parsing tm (+0000) (from %+05d %d:%d:%d then the date) in datestr
 
-    Convert a string into  day / month / year integers according to
-    the current dateFormat value.
+ I hope that github will show differences between my new function gnc_parse_time_date and function qof_scan_date_internal found below, existing in HEAD (as of 25/1/2016) of the branch master of gnucash. Thanks to spaces added to qof_scan_date_internal.
 
-    This function will always parse a single number as the day of
-    the month, regardless of the ordering of the dateFormat value.
-    Two numbers will always be parsed as the day and the month, in
-    the same order that they appear in the dateFormat value.  Three
-    numbers are parsed exactly as specified in the dateFormat field.
-
-    Fully formatted UTC timestamp strings are converted separately.
-
-param   buff - pointer to date string
-param     day -  will store day of the month as 1 ... 31
-param     month - will store month of the year as 1 ... 12
-param     year - will store the year (4-digit)
-
-return TRUE if date appeared to be valid.
-
- Globals: global dateFormat value
+**********************************************************
+KNOWN BUG: gnucash crashes if a date string starts by ":".
+**********************************************************
 */
-static gboolean
-qof_scan_date_internal (const char *buff, int *day, int *month, int *year,
-                        QofDateFormat which_format)
+void
+gnc_parse_time_date (struct tm *parsed, const char * buff)
 {
-    char *dupe, *tmp, *first_field, *second_field, *third_field;
+/* gnc_parse_time_date should call GncDateTime gncdt(std::string) when gnc_print_date_time_buff will be using GncDateTime and TZenv will disappear from everywhere*/
+    char *TZhourtxt, *TZtxt, *hourtxt, *minutetxt, *secondtxt, *dupe, *tmp; /* tmp may be the unparsed part of the string. , *first_field, *second_field, *third_field; */
     int iday, imonth, iyear;
-    int now_day, now_month, now_year;
-    struct tm *now, utc;
     time64 secs;
+    int tz; /* signed timezone in HHMM format */
+    char *TZname;
+    gchar * TZenv;
+    TZenv = g_strdup(g_getenv("TZ")); /* TZ should exist in env ! */
+    TZname = strtok (TZenv,"+-");
+    tz = atoi(strtok(NULL," ")) ;
+    g_free(TZenv);
+    hourtxt = NULL;/* will stay NULL if TZ is not in buff */
+    if (!parsed) return;
+    parsed->tm_year=-1; /* means failure. */
 
-    if (!buff) return(FALSE);
-
-    if (which_format == QOF_DATE_FORMAT_UTC)
-    {
-        if (strptime(buff, QOF_UTC_DATE_FORMAT, &utc)
-            || strptime (buff, "%Y-%m-%d", &utc))
-        {
-            *day = utc.tm_mday;
-            *month = utc.tm_mon + 1;
-            *year = utc.tm_year + 1900;
-            return TRUE;
-        }
-        else
-        {
-            return FALSE;
-        }
-    }
+    if (!buff) return;
     dupe = g_strdup (buff);
 
     tmp = dupe;
-    first_field = NULL;
-    second_field = NULL;
-    third_field = NULL;
-
-    /* Use strtok to find delimiters */
-    if (tmp)
-    {
-        static const char *delims = ".,-+/\\()년월年月 ";
-
-        first_field = strtok (tmp, delims);
-        if (first_field)
-        {
-            second_field = strtok (NULL, delims);
-            if (second_field)
-            {
-                third_field = strtok (NULL, delims);
-            }
+    TZhourtxt = strtok (tmp, ":");
+    minutetxt = strtok (NULL, ":");
+    if (buff[0] == ':') { /* ":"  means: use current time */
+     tz = 0;
+     secs = time(NULL);
+     gnc_localtime_r(&secs, parsed); /* t and tm_now are both UTC */
+    } else {
+     if (minutetxt) {/* "hh:mm date" and "hh:mm:ss date" are parsed. "hh date" is not recognized. "hh:mm" and "hh:mm:ss" imply today. Default value for the timezone is TZenv */
+        secondtxt = strtok (NULL, " ");
+        tmp = strtok (NULL, "\a");/* hack: \a is the audible bell, hope this one is never used in a date format ; tmp = minutetxt + strlen (strtok (minutetxt, " "))+1 might be better */
+        TZtxt = strtok (TZhourtxt, " ");
+        hourtxt = strtok (NULL, " ");
+        if (hourtxt) {
+            tz = atoi(TZtxt);
+            parsed->tm_hour = atoi(hourtxt) ;
+        } else {
+            parsed->tm_hour = atoi(TZtxt) ;
         }
+        if (tmp) {
+            /*  +0200 02:00:00 2016-06-03
+            * <       > TZhourtxt
+            *        <  > minutetxt
+            *           <  > secondtxt
+            *             <        > tmp
+            * <    > TZtxt
+            *      <  > hourtxt  */
+            parsed->tm_min = atoi(minutetxt) ;
+            parsed->tm_sec = atoi(secondtxt) ;
+        } else {
+            parsed->tm_min = atoi ( strtok (minutetxt, " ") );
+            parsed->tm_sec = 0 ;
+            tmp = secondtxt ;
+            /*  +0200 02:00 2016-06-03
+            * <       > TZhourtxt
+            *        <  > minutetxt
+            *           <        > secondtxt
+            *           <        > tmp
+            * <    > TZtxt
+            *      <  > hourtxt  */
+        }
+     } else {
+        parsed->tm_hour = 11; /* so that it has the right date for all timezones, except daylight saving time in extreme east. */
+        tz = 0; /* so that it has the right date for all timezones, except daylight saving time in extreme east. */
+        parsed->tm_min = 0;
+        parsed->tm_sec = 0;
+        tmp = TZhourtxt;
+     }
+     if (!qof_scan_date (tmp, &iday, &imonth, &iyear))
+     {
+        // Couldn't parse date, use today
+        struct tm tm_today;
+
+  	memset (&tm_today, 0, sizeof (struct tm));
+        gnc_tm_get_today_start (&tm_today);
+        iday = tm_today.tm_mday;
+        imonth = tm_today.tm_mon + 1;
+        iyear = tm_today.tm_year + 1900;
+     }
+     parsed->tm_mday = iday;
+     parsed->tm_mon  = imonth - 1;
+     parsed->tm_year = iyear - 1900;
     }
 
-    /* today's date */
-    gnc_time (&secs);
-    now = gnc_localtime (&secs);
-    now_day = now->tm_mday;
-    now_month = now->tm_mon + 1;
-    now_year = now->tm_year + 1900;
-    gnc_tm_free (now);
-
-    /* set defaults: if day or month appear to be blank, use today's date */
-    iday = now_day;
-    imonth = now_month;
-    iyear = -1;
-
-    /* get numeric values */
-    switch (which_format)
-    {
-    case QOF_DATE_FORMAT_LOCALE:
-        if (buff[0] != '\0')
-        {
-            struct tm thetime;
-            gchar *format = g_strdup (GNC_D_FMT);
-            gchar *stripped_format = g_strdup (GNC_D_FMT);
-            gint counter = 0, stripped_counter = 0;
-
-            /* strptime can't handle the - format modifier
-             * let's strip it out of the format before using it
-             */
-            while (format[counter] != '\0')
-            {
-                stripped_format[stripped_counter] = format[counter];
-                if ((format[counter] == '%') && (format[counter+1] == '-'))
-                    counter++;  // skip - format modifier
-
-                counter++;
-                stripped_counter++;
-            }
-            stripped_format[stripped_counter] = '\0';
-            g_free (format);
 
 
-            /* Parse time string. */
-            memset(&thetime, -1, sizeof(struct tm));
-            strptime (buff, stripped_format, &thetime);
-            g_free (stripped_format);
+    parsed->tm_hour -= (tz>0 ? 1 : -1)*(abs(tz)/100);
+    parsed->tm_min -=  (tz - (tz>0 ? 1 : -1)*(abs(tz)/100)*100);
+    
+    g_free(dupe);
 
-            if (third_field)
-            {
-                /* Easy.  All three values were parsed. */
-                iyear = thetime.tm_year + 1900;
-                iday = thetime.tm_mday;
-                imonth = thetime.tm_mon + 1;
-            }
-            else if (second_field)
-            {
-                /* Hard. Two values parsed.  Figure out the ordering. */
-                if (thetime.tm_year == -1)
-                {
-                    /* %m-%d or %d-%m. Don't care. Already parsed correctly. */
-                    iday = thetime.tm_mday;
-                    imonth = thetime.tm_mon + 1;
-                }
-                else if (thetime.tm_mon != -1)
-                {
-                    /* Must be %Y-%m-%d. Reparse as %m-%d.*/
-                    imonth = atoi(first_field);
-                    iday = atoi(second_field);
-                }
-                else
-                {
-                    /* Must be %Y-%d-%m. Reparse as %d-%m. */
-                    iday = atoi(first_field);
-                    imonth = atoi(second_field);
-                }
-            }
-            else if (first_field)
-            {
-                iday = atoi(first_field);
-            }
-        }
-        break;
-    case QOF_DATE_FORMAT_UK:
-    case QOF_DATE_FORMAT_CE:
-        if (third_field)
-        {
-            iday = atoi(first_field);
-            imonth = atoi(second_field);
-            iyear = atoi(third_field);
-        }
-        else if (second_field)
-        {
-            iday = atoi(first_field);
-            imonth = atoi(second_field);
-        }
-        else if (first_field)
-        {
-            iday = atoi(first_field);
-        }
-        break;
-    case QOF_DATE_FORMAT_ISO:
-        if (third_field)
-        {
-            iyear = atoi(first_field);
-            imonth = atoi(second_field);
-            iday = atoi(third_field);
-        }
-        else if (second_field)
-        {
-            imonth = atoi(first_field);
-            iday = atoi(second_field);
-        }
-        else if (first_field)
-        {
-            iday = atoi(first_field);
-        }
-        break;
-    case QOF_DATE_FORMAT_US:
-    default:
-        if (third_field)
-        {
-            imonth = atoi(first_field);
-            iday = atoi(second_field);
-            iyear = atoi(third_field);
-        }
-        else if (second_field)
-        {
-            imonth = atoi(first_field);
-            iday = atoi(second_field);
-        }
-        else if (first_field)
-        {
-            iday = atoi(first_field);
-        }
-        break;
-    }
+}
+/*  Convert a string into  day, month and year integers
 
-    g_free (dupe);
+This function qof_scan_date_internal exists as is in HEAD (as of 25/1/2016) of the branch master of gnucash, except for spaces. These spaces makes git think that this is a new function.
 
-    if ((12 < imonth) || (31 < iday))
-    {
-        /*
-         * Ack! Thppfft!  Someone just fed this routine a string in the
-         * wrong date format.  This is known to happen if a register
-         * window is open when changing the date format.  Try the
-         * previous date format.  If that doesn't work, see if we can
-         * exchange month and day. If that still doesn't work,
-         * bail and give the caller what they asked for (garbage)
-         * parsed in the new format.
-         *
-         * Note: This test cannot detect any format change that only
-         * swaps month and day field, if the day is 12 or less.  This is
-         * deemed acceptable given the obscurity of this bug.
-         */
-        if ((which_format != prevQofDateFormat) &&
-                qof_scan_date_internal(buff, day, month, year, prevQofDateFormat))
-        {
-            return(TRUE);
-        }
-        if ((12 < imonth) && (12 >= iday))
-        {
-            int tmp = imonth;
-            imonth = iday;
-            iday = tmp;
-        }
-        else
-        {
-            return FALSE;
-        }
-    }
+   Convert a string into  day / month / year integers according to
+   the current dateFormat value.
 
-    /* if no year was entered, choose a year according to the
-       dateCompletion preference. If it is
-       QOF_DATE_COMPLETION_THISYEAR, use the current year, else if it
-       is QOF_DATE_COMPLETION_SLIDING, use a sliding window that
-       starts dateCompletionBackMonths before the current month.
+   This function will always parse a single number as the day of
+   the month, regardless of the ordering of the dateFormat value.
+   Two numbers will always be parsed as the day and the month, in
+   the same order that they appear in the dateFormat value.  Three
+   numbers are parsed exactly as specified in the dateFormat field.
 
-       We go by whole months, rather than days, because presumably
-       this is less confusing.
-    */
+   Fully formatted UTC timestamp strings are converted separately.
 
-    if (iyear == -1)
-    {
-        if (dateCompletion == QOF_DATE_COMPLETION_THISYEAR)
-        {
-            iyear = now_year;  /* use the current year */
-        }
-        else
-        {
-            iyear = now_year - floordiv(imonth - now_month +
-                                        dateCompletionBackMonths, 12);
-        }
-    }
+param    buff - pointer to date string
+param    day -  will store day of the month as 1 ... 31
+param    month - will store month of the year as 1 ... 12
+param    year - will store the year (4-digit)
 
-    /* If the year entered is smaller than 100, assume we mean the current
-       century (and are not revising some roman emperor's books) */
-    if (iyear < 100)
-        iyear += ((int) ((now_year + 50 - iyear) / 100)) * 100;
+return TRUE if date appeared to be valid .
 
-    if (year) *year = iyear;
-    if (month) *month = imonth;
-    if (day) *day = iday;
-    return(TRUE);
+ Globals: global dateFormat value
+ */
+ static gboolean
+ qof_scan_date_internal (const char *buff, int *day, int *month, int *year,
+                      QofDateFormat which_format)
+{
+     char *dupe, *tmp, *first_field, *second_field, *third_field;
+     int iday, imonth, iyear;
+     int now_day, now_month, now_year;
+     struct tm *now, utc;
+     time64 secs;
+
+     if (!buff) return(FALSE);
+
+     if (which_format == QOF_DATE_FORMAT_UTC)
+     {
+         if (strptime(buff, QOF_UTC_DATE_FORMAT, &utc)
+             || strptime (buff, "%Y-%m-%d", &utc))
+         {
+             *day = utc.tm_mday;
+             *month = utc.tm_mon + 1;
+             *year = utc.tm_year + 1900;
+             return TRUE;
+         }
+         else
+         {
+             return FALSE;
+         }
+     }
+     dupe = g_strdup (buff);
+
+     tmp = dupe;
+     first_field = NULL;
+     second_field = NULL;
+     third_field = NULL;
+
+     /* Use strtok to find delimiters */
+     if (tmp)
+     {
+         static const char *delims = ".,-+/\\()년월年月 ";
+
+         first_field = strtok (tmp, delims);
+         if (first_field)
+         {
+             second_field = strtok (NULL, delims);
+             if (second_field)
+             {
+                 third_field = strtok (NULL, delims);
+             }
+         }
+     }
+
+     /* today's date */
+     gnc_time (&secs);
+     now = gnc_localtime (&secs);
+     now_day = now->tm_mday;
+     now_month = now->tm_mon + 1;
+     now_year = now->tm_year + 1900;
+     gnc_tm_free (now);
+
+     /* set defaults: if day or month appear to be blank, use today's date */
+     iday = now_day;
+     imonth = now_month;
+     iyear = -1;
+
+     /* get numeric values */
+     switch (which_format)
+     {
+     case QOF_DATE_FORMAT_LOCALE:
+         if (buff[0] != '\0')
+         {
+             struct tm thetime;
+             gchar *format = g_strdup (GNC_D_FMT);
+             gchar *stripped_format = g_strdup (GNC_D_FMT);
+             gint counter = 0, stripped_counter = 0;
+
+             /* strptime can't handle the - format modifier
+              * let's strip it out of the format before using it
+              */
+             while (format[counter] != '\0')
+             {
+                 stripped_format[stripped_counter] = format[counter];
+                 if ((format[counter] == '%') && (format[counter+1] == '-'))
+                     counter++;  // skip - format modifier
+
+                 counter++;
+                 stripped_counter++;
+             }
+             stripped_format[stripped_counter] = '\0';
+             g_free (format);
+
+
+             /* Parse time string. */
+             memset(&thetime, -1, sizeof(struct tm));
+             strptime (buff, stripped_format, &thetime);
+             g_free (stripped_format);
+
+             if (third_field)
+             {
+                 /* Easy.  All three values were parsed. */
+                 iyear = thetime.tm_year + 1900;
+                 iday = thetime.tm_mday;
+                 imonth = thetime.tm_mon + 1;
+             }
+             else if (second_field)
+             {
+                 /* Hard. Two values parsed.  Figure out the ordering. */
+                 if (thetime.tm_year == -1)
+                 {
+                     /* %m-%d or %d-%m. Don't care. Already parsed correctly. */
+                     iday = thetime.tm_mday;
+                     imonth = thetime.tm_mon + 1;
+                 }
+                 else if (thetime.tm_mon != -1)
+                 {
+                     /* Must be %Y-%m-%d. Reparse as %m-%d.*/
+                     imonth = atoi(first_field);
+                     iday = atoi(second_field);
+                 }
+                 else
+                 {
+                     /* Must be %Y-%d-%m. Reparse as %d-%m. */
+                     iday = atoi(first_field);
+                     imonth = atoi(second_field);
+                 }
+             }
+             else if (first_field)
+             {
+                 iday = atoi(first_field);
+             }
+         }
+         break;
+     case QOF_DATE_FORMAT_UK:
+     case QOF_DATE_FORMAT_CE:
+         if (third_field)
+         {
+             iday = atoi(first_field);
+             imonth = atoi(second_field);
+             iyear = atoi(third_field);
+         }
+         else if (second_field)
+         {
+             iday = atoi(first_field);
+             imonth = atoi(second_field);
+         }
+         else if (first_field)
+         {
+             iday = atoi(first_field);
+         }
+         break;
+     case QOF_DATE_FORMAT_ISO:
+         if (third_field)
+         {
+             iyear = atoi(first_field);
+             imonth = atoi(second_field);
+             iday = atoi(third_field);
+         }
+         else if (second_field)
+         {
+             imonth = atoi(first_field);
+             iday = atoi(second_field);
+         }
+         else if (first_field)
+         {
+             iday = atoi(first_field);
+         }
+         break;
+     case QOF_DATE_FORMAT_US:
+     default:
+         if (third_field)
+         {
+             imonth = atoi(first_field);
+             iday = atoi(second_field);
+             iyear = atoi(third_field);
+         }
+         else if (second_field)
+         {
+             imonth = atoi(first_field);
+             iday = atoi(second_field);
+         }
+         else if (first_field)
+         {
+             iday = atoi(first_field);
+         }
+         break;
+     }
+
+     g_free (dupe);
+
+     if ((12 < imonth) || (31 < iday))
+     {
+         /*
+          * Ack! Thppfft!  Someone just fed this routine a string in the
+          * wrong date format.  This is known to happen if a register
+          * window is open when changing the date format.  Try the
+          * previous date format.  If that doesn't work, see if we can
+          * exchange month and day. If that still doesn't work,
+          * bail and give the caller what they asked for (garbage)
+          * parsed in the new format.
+          *
+          * Note: This test cannot detect any format change that only
+          * swaps month and day field, if the day is 12 or less.  This is
+          * deemed acceptable given the obscurity of this bug.
+          */
+         if ((which_format != prevQofDateFormat) &&
+                 qof_scan_date_internal(buff, day, month, year, prevQofDateFormat))
+         {
+             return(TRUE);
+         }
+         if ((12 < imonth) && (12 >= iday))
+         {
+             int tmp = imonth;
+             imonth = iday;
+             iday = tmp;
+         }
+         else
+         {
+             return FALSE;
+         }
+     }
+
+     /* if no year was entered, choose a year according to the
+        dateCompletion preference. If it is
+        QOF_DATE_COMPLETION_THISYEAR, use the current year, else if it
+        is QOF_DATE_COMPLETION_SLIDING, use a sliding window that
+        starts dateCompletionBackMonths before the current month.
+
+        We go by whole months, rather than days, because presumably
+        this is less confusing.
+     */
+
+     if (iyear == -1)
+     {
+         if (dateCompletion == QOF_DATE_COMPLETION_THISYEAR)
+         {
+             iyear = now_year;  /* use the current year */
+         }
+         else
+         {
+             iyear = now_year - floordiv(imonth - now_month +
+                                         dateCompletionBackMonths, 12);
+         }
+     }
+
+     /* If the year entered is smaller than 100, assume we mean the current
+        century (and are not revising some roman emperor's books) */
+     if (iyear < 100)
+         iyear += ((int) ((now_year + 50 - iyear) / 100)) * 100;
+
+     if (year) *year = iyear;
+     if (month) *month = imonth;
+     if (day) *day = iday;
+     return(TRUE);
 }
 
 gboolean
@@ -1280,6 +1454,13 @@ GDate* gnc_g_date_new_today ()
     return result;
 }
 
+Timespec gdate_to_timespec1100Z (GDate d)
+{
+    Timespec res;
+				res=gdate_to_timespec (d);
+				res.tv_sec += 11*3600;
+				return res;
+}
 Timespec gdate_to_timespec (GDate d)
 {
     return gnc_dmy2timespec(g_date_get_day(&d),

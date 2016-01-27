@@ -129,22 +129,11 @@ gnc_parse_date (struct tm *parsed, const char * datestr)
 {
     int day, month, year;
     gboolean use_autoreadonly = qof_book_uses_autoreadonly(gnc_get_current_book());
+    gnc_parse_time_date (parsed, datestr) ;
 
-    if (!parsed) return;
-    if (!datestr) return;
-
-    if (!qof_scan_date (datestr, &day, &month, &year))
-    {
-        // Couldn't parse date, use today
-        struct tm tm_today;
-
-	memset (&tm_today, 0, sizeof (struct tm));
-        gnc_tm_get_today_start (&tm_today);
-        day = tm_today.tm_mday;
-        month = tm_today.tm_mon + 1;
-        year = tm_today.tm_year + 1900;
-    }
-
+    day = parsed->tm_mday;
+    month = parsed->tm_mon + 1;
+    year = parsed->tm_year + 1900;
     // If we have an auto-read-only threshold, do not accept a date that is
     // older than the threshold.
     if (use_autoreadonly)
@@ -162,14 +151,6 @@ gnc_parse_date (struct tm *parsed, const char * datestr)
     parsed->tm_mday = day;
     parsed->tm_mon  = month - 1;
     parsed->tm_year = year - 1900;
-
-    gnc_tm_set_day_start(parsed);
-    /* Using gnc_mktime purely for its side effect of filling in the
-     * rest of parsed and to check that it's valid.
-     */
-    if (gnc_mktime (parsed) == -1)
-        gnc_tm_get_today_start (parsed);
-    gnc_mktime (parsed);
 }
 
 static void
@@ -177,10 +158,8 @@ gnc_date_cell_print_date (DateCell *cell, char *buff)
 {
     PopBox *box = cell->cell.gui_private;
 
-    qof_print_date_dmy_buff (buff, MAX_DATE_LENGTH,
-                             box->date.tm_mday,
-                             box->date.tm_mon + 1,
-                             box->date.tm_year + 1900);
+    qof_print_date_tm_buff (buff, MAX_DATE_LENGTH,
+                             box->date);
 }
 
 static void
@@ -404,7 +383,7 @@ gnc_date_cell_set_value (DateCell *cell, int day, int mon, int year)
     box->date.tm_mon  = dada.tm_mon;
     box->date.tm_year = dada.tm_year;
 
-    qof_print_date_dmy_buff (buff, MAX_DATE_LENGTH, dada.tm_mday, dada.tm_mon + 1, dada.tm_year + 1900);
+    qof_print_date_tm_buff (buff, MAX_DATE_LENGTH, dada);
 
     gnc_basic_cell_set_value_internal (&cell->cell, buff);
 
@@ -424,10 +403,8 @@ gnc_date_cell_set_value_secs (DateCell *cell, time64 secs)
 
     gnc_localtime_r (&secs, &(box->date));
 
-    qof_print_date_dmy_buff (buff, MAX_DATE_LENGTH,
-                             box->date.tm_mday,
-                             box->date.tm_mon + 1,
-                             box->date.tm_year + 1900);
+    qof_print_date_tm_buff (buff, MAX_DATE_LENGTH,
+                             box->date);
 
     gnc_basic_cell_set_value_internal (&cell->cell, buff);
 
@@ -451,12 +428,10 @@ gnc_date_cell_commit (DateCell *cell)
     if (!cell)
         return;
 
-    gnc_parse_date (&(box->date), cell->cell.value);
+    gnc_parse_time_date (&(box->date), cell->cell.value);
 
-    qof_print_date_dmy_buff (buff, MAX_DATE_LENGTH,
-                             box->date.tm_mday,
-                             box->date.tm_mon + 1,
-                             box->date.tm_year + 1900);
+    qof_print_date_tm_buff (buff, MAX_DATE_LENGTH,
+                             box->date);
 
     gnc_basic_cell_set_value_internal (&cell->cell, buff);
 
@@ -486,10 +461,8 @@ gnc_date_cell_direct_update (BasicCell *bcell,
     if (!gnc_handle_date_accelerator (event, &(box->date), bcell->value))
         return FALSE;
 
-    qof_print_date_dmy_buff (buff, MAX_DATE_LENGTH,
-                             box->date.tm_mday,
-                             box->date.tm_mon + 1,
-                             box->date.tm_year + 1900);
+    qof_print_date_tm_buff (buff, MAX_DATE_LENGTH,
+                             box->date);
 
     gnc_basic_cell_set_value_internal (&cell->cell, buff);
 
@@ -542,15 +515,21 @@ gnc_date_cell_modify_verify (BasicCell *_cell,
         const gchar *c;
         gunichar uc;
 
-        /* accept only numbers or a date separator. Note that the
-         * separator of '-' (for DATE_FORMAT_ISO) takes precedence
-         * over the accelerator below! */
+	/* accept only numbers, spaces, colon, or a date separator. Note that
+	 * the separator of '-' (for DATE_FORMAT_ISO) takes precedence over the
+	 * accelerator below! */
         c = change;
         while (*c)
         {
             uc = g_utf8_get_char (c);
 
-            if (!g_unichar_isdigit (uc) && (separator != uc))
+            if (!g_unichar_isdigit (uc) &&
+	                    (*c != ' ') &&
+			    (*c != ':') &&
+			    (*c != '+') &&
+			    (*c != '-') &&
+			(separator != uc)
+		)
                 ok = FALSE;
 
             if (separator == uc)
@@ -582,7 +561,7 @@ gnc_date_cell_modify_verify (BasicCell *_cell,
     {
 
         gnc_basic_cell_set_value_internal (&cell->cell, newval);
-        gnc_parse_date (&(box->date), newval);
+        gnc_parse_time_date (&(box->date), newval);
 
         if (!box->date_picker)
             return;
@@ -708,7 +687,7 @@ gnc_date_cell_get_date_gdate (DateCell *cell, GDate *date)
     if (!cell || !date)
         return;
 
-    gnc_parse_date (&(box->date), cell->cell.value);
+    gnc_parse_time_date (&(box->date), cell->cell.value);
 
     g_date_set_dmy(date,
                    box->date.tm_mday,
@@ -724,7 +703,7 @@ gnc_date_cell_get_date (DateCell *cell, Timespec *ts)
     if (!cell || !ts)
         return;
 
-    gnc_parse_date (&(box->date), cell->cell.value);
+    gnc_parse_time_date (&(box->date), cell->cell.value);
 
     ts->tv_sec = gnc_mktime (&box->date);
     ts->tv_nsec = 0;
@@ -737,12 +716,10 @@ gnc_date_cell_set_value_internal (BasicCell *_cell, const char *str)
     PopBox *box = cell->cell.gui_private;
     char buff[DATE_BUF];
 
-    gnc_parse_date (&(box->date), str);
+    gnc_parse_time_date (&(box->date), str);
 
-    qof_print_date_dmy_buff (buff, MAX_DATE_LENGTH,
-                             box->date.tm_mday,
-                             box->date.tm_mon + 1,
-                             box->date.tm_year + 1900);
+    qof_print_date_tm_buff (buff, MAX_DATE_LENGTH,
+                             box->date);
 
     gnc_basic_cell_set_value_internal (_cell, buff);
 

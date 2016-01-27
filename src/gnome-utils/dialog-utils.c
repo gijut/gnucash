@@ -270,8 +270,8 @@ gnc_handle_date_accelerator (GdkEventKey *event,
      */
     switch (event->keyval)
     {
-    case GDK_KEY_KP_Add:
-    case GDK_KEY_plus:
+/*  case GDK_KEY_KP_Add: no, it is useful to insert timezones */
+/*  case GDK_KEY_plus: no, it is useful to insert timezones */
     case GDK_KEY_equal:
         if (event->state & GDK_SHIFT_MASK)
             g_date_add_days (&gdate, 7);
@@ -284,8 +284,9 @@ gnc_handle_date_accelerator (GdkEventKey *event,
         g_date_to_struct_tm (&gdate, tm);
         return TRUE;
 
-    case GDK_KEY_minus:
-    case GDK_KEY_KP_Subtract:
+    
+/*  case GDK_KEY_minus: no, it is useful to insert timezones */
+/*  case GDK_KEY_KP_Subtract: no, it is useful to insert timezones */
     case GDK_KEY_underscore:
         if ((strlen (date_str) != 0) && (dateSeparator () == '-'))
         {
