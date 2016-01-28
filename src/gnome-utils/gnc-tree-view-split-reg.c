@@ -4375,7 +4375,7 @@ gtv_sr_edited_normal_cb (GtkCellRendererText *cell, const gchar *path_string,
                 char string[1024];
                 gtv_sr_begin_edit (view, trans);
                 xaccTransSetDatePostedTS (trans, &parsed_ts);
-                g_snprintf (string, 1023, "%s (Backuped time %d %s)", xaccTransGetNotes(trans), strlen(new_text), new_text);
+                g_snprintf (string, 1023, "%s (Backuped time %lu %s)", xaccTransGetNotes(trans), strlen(new_text), new_text);
                 xaccTransSetNotes(trans, g_strdup(string));
             }
             else
