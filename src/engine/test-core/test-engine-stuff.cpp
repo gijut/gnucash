@@ -450,6 +450,9 @@ get_random_gnc_numeric(int64_t deno)
              numer = limit;
     }
     if (0 == numer) numer = 1;
+/* The ISO C99 standard specifies that PRIu64 must only be
+   defined if explicitly requested, and !defined __cplusplus || defined __STDC_FORMAT_MACROS is wrong. */
+#define PRIu64 "lu"
     g_log("test.engine.suff", G_LOG_LEVEL_INFO, "New GncNumeric %" PRIu64 " / %" PRIu64 " !\n", numer, deno);
     return gnc_numeric_create(numer, deno);
 }
