@@ -592,28 +592,12 @@ const gchar *qof_date_text_format_get_string(QofDateFormat df)
     return GNC_D_FMT;
 }
 
-/* Convert hour, minute, second, day, month and year values to a date string in UTC +0000 timezone.
-
-  Date converted as day / month / year integers into a localized string
-  representation with qof_print_date_dmy_buff; Time converted in 24h format.
-
-param   buff - pointer to previously allocated character array; its size
-         must be at lease MAX_DATE_LENGTH bytes.
-param   date - struct tm with the time and date
-
-return length of string created in buff.
-
-Globals: global dateFormat value*/
 size_t
 qof_print_date_tm_buff (char * buff, size_t len, struct tm date)
 {
     return gnc_print_date_time_buff (buff, len, gnc_mktime(& date));
 }
 
-return length of string created in buff.
-
-Globals: global dateFormat value
-*/
 size_t
 qof_print_date_dmy_buff (char * buff, size_t len, int day, int month, int year)
 {
