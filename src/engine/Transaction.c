@@ -1939,10 +1939,11 @@ xaccTransSetDatePostedGDate (Transaction *trans, GDate date)
 }
 
 void
-xaccTransSetDateEnteredSecs (Transaction *trans, time64 secs)
+xaccTransSetDateEnteredSecs (Transaction *trans, time64 now)
 {
-    Timespec ts = {secs, 0};
-    struct tm * tm;
+    Timespec ts = {now, 0};
+    struct tm * tm_gmt;
+    struct tm tm;
     time64 t_posted;
     
     
@@ -1952,13 +1953,18 @@ xaccTransSetDateEnteredSecs (Transaction *trans, time64 secs)
     if (!trans) return;
     xaccTransSetDateInternal(trans, &trans->date_entered, ts);
     t_posted = xaccTransGetDate (trans);/* will next return something else wether conditions below match. */
-    tm = gnc_gmtime(&t_posted) {
-    if (tm != NULL) {
-        DEBUG("xaccTransSetDateEnteredSecs parsed %d:%d:%d %d-%d-%d +%d from date_posted (*posted*, not *entered*) %" G_GUINT64_FORMAT " parsed from %" G_GUINT64_FORMAT ".%09ld : if that matches 1100Z and is between date_entered-14h and date_entered+11h, date_posted will be updated to %" G_GUINT64_FORMAT ".\n", tm.tm_hour, tm.tm_min, tm.tm_sec, tm.tm_year+1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_gmtoff, t_posted, trans->date_posted.tv_sec, trans->date_posted.tv_nsec, secs);
-        if (t_posted>secs-14*3600 && t_posted<secs+11*3600 && tm->tm_hour == 11 && tm->tm_min == 0 && tm->tm_sec == 0) {
-            xaccTransSetDatePostedTS(trans, &ts) ;
+    tm_gmt = gnc_gmtime(&t_posted) ;
+    if (tm_gmt != NULL)
+    {
+        if (gnc_localtime_r(&t_posted, &tm))
+        {
+            DEBUG("xaccTransSetDateEnteredSecs parsed %d:%d:%d %d-%d-%d +%d from date_posted (*posted*, not *entered*) %" G_GUINT64_FORMAT " parsed from %" G_GUINT64_FORMAT ".%09ld : if %d:%d:%d %d-%d-%d +%d matches 1100Z and is between now+%d and now+%d, date_posted will be updated to now=%" G_GUINT64_FORMAT ".\n", tm->tm_hour, tm->tm_min, tm->tm_sec, tm->tm_year+1900, tm->tm_mon + 1, tm->tm_mday, tm->tm_gmtoff, t_posted, trans->date_posted.tv_sec, trans->date_posted.tv_nsec, tm_gmt->tm_gmt_hour, tm_gmt->tm_gmt_min, tm_gmt->tm_gmt_sec, tm_gmt->tm_gmt_year+1900, tm_gmt->tm_gmt_mon + 1, tm_gmt->tm_gmt_mday, tm_gmt->tm_gmt_gmtoff, reference_time_TZ+(tm -> tm_gmtoff),k_seconds_of_tolerance+k_seconds_per_day+reference_time_TZ+(tm -> tm_gmtoff),now);
+            if (t_posted<now+k_seconds_of_tolerance+k_seconds_per_day+reference_time_TZ+(tm -> tm_gmtoff) && t >now+reference_time_TZ+(tm -> tm_gmtoff) && tm_gmt->tm_hour == k_reference_time_TZ_hour && tm_gmt->tm_min == k_reference_time_TZ_min && tm_gmt->tm_sec == k_reference_time_TZ_sec_of_min)
+            {
+                xaccTransSetDatePostedTS(trans, &ts) ;
+            }
         }
-        gnc_tm_free (tm);
+        gnc_tm_free (tm_gmt);
     }
 }
 

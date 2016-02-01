@@ -441,11 +441,17 @@ gnc_tree_util_split_reg_get_date_help (Timespec *ts)
  
     memset (&tm, 0, sizeof (tm));
     t = ts->tv_sec + (time64)(ts->tv_nsec / 1000000000.0);
-    tm_gmt = gnc_localtime_r(&t) ;
+    tm_gmt = gnc_gmtime(&t) ;
     if (gnc_localtime_r(&t, &tm)) { t_today = time(NULL);  /* WARNING, tm is localtime ! */
         written += qof_strftime (string + written, sizeof (string) - written, _("%z %H:%M:%S %A %d %B %Y"), &tm);
-        if (tm_gmt != NULL && t<t_today+k_seconds_of_tolerance+k_seconds_per_day+reference_time_TZ+(tm -> tm_gmtoff) && t >t_today+reference_time_TZ+(tm -> tm_gmtoff) && tm_gmt.tm_hour == k_reference_time_TZ_hour && tm_gmt->tm_min == k_reference_time_TZ_min && tm_gmt->tm_sec == k_reference_time_TZ_sec_of_min)
-            g_snprintf (string + written, sizeof (string) - written, _(" (or timestamp of future Enter if before %d-th second of tomorrow)", k_seconds_of_tolerance));
+        if (tm_gmt != NULL)
+	{
+            if (t<t_today+k_seconds_of_tolerance+k_seconds_per_day+reference_time_TZ+(tm -> tm_gmtoff) && t >t_today+reference_time_TZ+(tm -> tm_gmtoff) && tm_gmt.tm_hour == k_reference_time_TZ_hour && tm_gmt->tm_min == k_reference_time_TZ_min && tm_gmt->tm_sec == k_reference_time_TZ_sec_of_min)
+	    {
+                g_snprintf (string + written, sizeof (string) - written, _(" (or timestamp of future Enter if before %d-th second of tomorrow)", k_seconds_of_tolerance));
+	    }
+            gnc_tm_free (tm_gmt);
+	}
         return g_strdup (string);
     }
     else
