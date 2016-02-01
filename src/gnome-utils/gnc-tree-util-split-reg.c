@@ -438,7 +438,6 @@ gnc_tree_util_split_reg_get_date_help (Timespec *ts)
     tz = atoi(strtok(NULL," ")) ;
     g_free(TZenv);
  
-#define GNC_RESPONSE_NEW    1
     t = ts->tv_sec + (time64)(ts->tv_nsec / NANOS_PER_SECOND);
     if (gnc_localtime_r(&t, &tm)) { t_today = time(NULL);  /* WARNING, tm is localtime ! */
         written = g_snprintf (string, sizeof (string), "%+05d ", tm -> );// the left part of the string is the one hidden whenever the column is too small.
