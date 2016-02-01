@@ -84,12 +84,12 @@ const char *gnc_default_strftime_date_format =
 static const int k_seconds_per_day = 24*3600 ;
 
 /* These should be editable */
-static int k_show_time = 1 ; /* 1 if showing the time, 0 otherwise */
-static int k_seconds_of_tolerance = 3600 ; /* gnucash registers should be reopened at most k_seconds_of_tolerance after midnight to let enter go nicely. */
-static int k_reference_time_TZ_hour = 11; //11 ; far west timezone on winter will prefer 12 which is incompatible with New Zealand on summer.
-static int k_reference_time_TZ_min = 0; // should be <60
-static int k_reference_time_TZ_sec_of_min = 0; // should be <60
-static int k_reference_time_TZ = \
+k_show_time = 1 ; /* 1 if showing the time, 0 otherwise */
+k_seconds_of_tolerance = 3600 ; /* gnucash registers should be reopened at most k_seconds_of_tolerance after midnight to let enter go nicely. */
+k_reference_time_TZ_hour = 11; //11 ; far west timezone on winter will prefer 12 which is incompatible with New Zealand on summer.
+k_reference_time_TZ_min = 0; // should be <60
+k_reference_time_TZ_sec_of_min = 0; // should be <60
+k_reference_time_TZ = \
   ( k_reference_time_TZ_hour * 60 \
   + k_reference_time_TZ_min ) * 60 \
   + k_reference_time_TZ_sec_of_min ; //(k_reference_time_TZ_hour*60+k_reference_time_TZ_min)*60+k_reference_time_TZ_sec_of_min, time at greenwich at which all transactions time defaults.
