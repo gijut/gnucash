@@ -1995,7 +1995,7 @@ xaccTransSetDateEnteredSecs (Transaction *trans, time64 now)
 					        k_seconds_of_tolerance+k_seconds_per_day+k_reference_time_TZ+(tm.tm_gmtoff),
 	                                       /* "%" G_GUINT64_FORMAT ".\n",*/
 						   now);
-            if (t_posted<now+k_seconds_of_tolerance+k_seconds_per_day+k_reference_time_TZ+(tm.tm_gmtoff) && t >now+k_reference_time_TZ+(tm.tm_gmtoff) && tm_gmt->tm_hour == k_reference_time_TZ_hour && tm_gmt->tm_min == k_reference_time_TZ_min && tm_gmt->tm_sec == k_reference_time_TZ_sec_of_min)
+            if (t_posted<now+k_seconds_of_tolerance+k_seconds_per_day+k_reference_time_TZ+(tm.tm_gmtoff) && t_posted >now+k_reference_time_TZ+(tm.tm_gmtoff) && tm_gmt->tm_hour == k_reference_time_TZ_hour && tm_gmt->tm_min == k_reference_time_TZ_min && tm_gmt->tm_sec == k_reference_time_TZ_sec_of_min)
             {
                 xaccTransSetDatePostedTS(trans, &ts) ;
             }
