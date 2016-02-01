@@ -757,6 +757,8 @@ gnc_parse_time_date (struct tm *parsed, const char * buff)
            if (hourtxt) {
                tz = atoi(TZtxt);
                parsed->tm_hour = atoi(hourtxt) ;
+               parsed->tm_gmtoff = (tz % 100) + 60 * (tz / 100);
+	       if (tz < 0) parsed->tm_gmtoff = - parsed->tm_gmtoff;
            } else {
                if (TZtxt) {
                    parsed->tm_hour = atoi(TZtxt) ;
@@ -788,7 +790,7 @@ gnc_parse_time_date (struct tm *parsed, const char * buff)
            }
         } else {
            parsed->tm_hour = k_reference_time_TZ_hour;
-           tz = 0; /* so that it has the right date for all timezones, except daylight saving time in extreme east. */
+           parsed->tm_gmtoff = 0;
            parsed->tm_min = k_reference_time_TZ_min;
            parsed->tm_sec = k_reference_time_TZ_sec_of_min;
            tmp = TZhourtxt;
@@ -800,12 +802,6 @@ gnc_parse_time_date (struct tm *parsed, const char * buff)
             parsed->tm_year = iyear - 1900;
         } /* else { Couldn't parse date, use today ; } */
     }
-
-
-
-    parsed->tm_hour -= (tz>0 ? 1 : -1)*(abs(tz)/100);
-    parsed->tm_min -=  (tz - (tz>0 ? 1 : -1)*(abs(tz)/100)*100);
-    parsed->tm_gmtoff = 0;
     
     g_free (dupe);
 
