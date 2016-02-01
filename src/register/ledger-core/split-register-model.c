@@ -25,6 +25,7 @@
 #include <glib.h>
 #include <glib/gi18n.h>
 #include "gnc-date.h"
+#include "gnc-date-p.h"
 #include "datecell.h"
 #include "dialog-utils.h"
 #include "gnc-engine.h"
@@ -887,7 +888,7 @@ gnc_split_register_get_date_help (VirtualLocation virt_loc,
         return NULL;
 
     gnc_date_cell_get_date ((DateCell *) cell, &ts);
-    t = ts.tv_sec + (time64)(ts.tv_nsec / 1000000000.0);
+    t = ts.tv_sec + (time64)(ts.tv_nsec / NANOS_PER_SECOND);
     
     if (!gnc_localtime_r(&t, &tm)) {
         return g_strdup (" ");

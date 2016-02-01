@@ -1942,7 +1942,7 @@ void
 xaccTransSetDateEnteredSecs (Transaction *trans, time64 secs)
 {
     Timespec ts = {secs, 0};
-    struct tm tm;
+    struct tm * tm;
     time64 t_posted;
     
     
@@ -1952,10 +1952,13 @@ xaccTransSetDateEnteredSecs (Transaction *trans, time64 secs)
     if (!trans) return;
     xaccTransSetDateInternal(trans, &trans->date_entered, ts);
     t_posted = xaccTransGetDate (trans);/* will next return something else wether conditions below match. */
-    if (gnc_localtime_r(&t_posted, &tm)) {/* gnc_localtime_r does not seem to use timezones */
-        if (t_posted>secs-14*3600 && t_posted<secs+11*3600 && tm.tm_hour == 11 && tm.tm_min == 0 && tm.tm_sec == 0) {
+    tm = gnc_gmtime(&t_posted) {
+    if (tm != NULL) {
+        DEBUG("xaccTransSetDateEnteredSecs parsed %d:%d:%d %d-%d-%d +%d from date_posted (*posted*, not *entered*) %" G_GUINT64_FORMAT " parsed from %" G_GUINT64_FORMAT ".%09ld : if that matches 1100Z and is between date_entered-14h and date_entered+11h, date_posted will be updated to %" G_GUINT64_FORMAT ".\n", tm.tm_hour, tm.tm_min, tm.tm_sec, tm.tm_year+1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_gmtoff, t_posted, trans->date_posted.tv_sec, trans->date_posted.tv_nsec, secs);
+        if (t_posted>secs-14*3600 && t_posted<secs+11*3600 && tm->tm_hour == 11 && tm->tm_min == 0 && tm->tm_sec == 0) {
             xaccTransSetDatePostedTS(trans, &ts) ;
         }
+        gnc_tm_free (tm);
     }
 }
 
