@@ -431,14 +431,6 @@ gnc_tree_util_split_reg_get_date_help (Timespec *ts)
     int written;
     
     
-    int tz; /* signed timezone in HHMM format */
-    char *TZname;
-    gchar * TZenv;
-    TZenv = g_strdup(g_getenv("TZ")); /* TZ should exist in env ! */
-    TZname = strtok (TZenv,"+-");
-    tz = atoi(strtok(NULL," ")) ;
-    g_free(TZenv);
- 
     memset (&tm, 0, sizeof (tm));
     t = ts->tv_sec + (time64)(ts->tv_nsec / 1000000000.0);
     tm_gmt = gnc_gmtime(&t) ;

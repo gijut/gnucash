@@ -676,7 +676,7 @@ buff[len - 1] = '\0'; */
     time64 bt;
     
     bt = t;
-    if (!gnc_localtime_r(&bt, &theTime)) /* t and theTime are both *local* time */
+    if (!gnc_localtime_r(&bt, &theTime)) /* theTime is *local* time */
         return 0;
     
     timelength = g_snprintf (buff, len, "%c%02d%02d %02d:%02d:%02d ", theTime.tm_gmtoff < 0 ? '-' : '+', abs(theTime.tm_gmtoff) / 60, abs(theTime.tm_gmtoff) % 60, theTime.tm_hour, theTime.tm_min, theTime.tm_sec);// the left part of the string is the one hidden whenever the column is too small.
@@ -758,7 +758,7 @@ gnc_parse_time_date (struct tm *parsed, const char * buff)
                tz = atoi(TZtxt);
                parsed->tm_hour = atoi(hourtxt) ;
                parsed->tm_gmtoff = (tz % 100) + 60 * (tz / 100);
-	       if (tz < 0) parsed->tm_gmtoff = - parsed->tm_gmtoff;
+	       if (tz < 0) parsed->tm_gmtoff = - (parsed->tm_gmtoff);
            } else {
                if (TZtxt) {
                    parsed->tm_hour = atoi(TZtxt) ;
