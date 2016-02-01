@@ -211,6 +211,33 @@ typedef enum
 
 
 
+/** Alternative color tables for vision impaired people.
+ * The colors in this array are ordered according to the RegisterColor Enum
+ * Be careful to respect this order !
+ */
+static const guint32 reg_colors_reverse_video [] =
+{
+    0x000000,     // COLOR_UNKNOWN_BG
+    0x000000,     // COLOR_HEADER_BG
+    0x000000,     // COLOR_PRIMARY_BG
+    0x000000,     // COLOR_PRIMARY_BG_ACTIVE
+    0x000000,     // COLOR_SECONDARY_BG
+    0x000000,     // COLOR_SECONDARY_BG_ACTIVE
+    0x000000,     // COLOR_SPLIT_BG
+    0x000000,     // COLOR_SPLIT_BG_ACTIVE
+
+    0xFFDFFF,     // COLOR_UNKNOWN_FG
+    0xDFDFFF,     // COLOR_HEADER_FG
+    0xFFFFFF,     // COLOR_PRIMARY_FG
+    0xFFFFDF,     // COLOR_PRIMARY_FG_ACTIVE
+    0xDFFFFF,     // COLOR_SECONDARY_FG
+    0xDFFFDF,     // COLOR_SECONDARY_FG_ACTIVE
+    0xFFFFFF,     // COLOR_SPLIT_FG
+    0xFFFFDF,     // COLOR_SPLIT_FG_ACTIVE
+
+    0x888888,     // COLOR_NEGATIVE
+};
+
 /** Alternative color tables to use for the register.
  * The colors in this array are ordered according to the RegisterColor Enum
  * Be careful to respect this order !
