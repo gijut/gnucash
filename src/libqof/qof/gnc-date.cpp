@@ -694,7 +694,7 @@ buff[len - 1] = '\0'; */
     if (!gnc_localtime_r(&bt, &theTime)) /* theTime is *local* time */
         return 0;
     
-    timelength = g_snprintf (buff, len, "%c%02d%02d %02d:%02d:%02d ", theTime.tm_gmtoff < 0 ? '-' : '+', abs(theTime.tm_gmtoff) / 60, abs(theTime.tm_gmtoff) % 60, theTime.tm_hour, theTime.tm_min, theTime.tm_sec);// the left part of the string is the one hidden whenever the column is too small.
+    timelength = g_snprintf (buff, len, "%c%02d%02d %02d:%02d:%02d ", theTime.tm_gmtoff < 0 ? '-' : '+', abs(theTime.tm_gmtoff) / 60 / 60, (abs(theTime.tm_gmtoff) / 60) % 60, theTime.tm_hour, theTime.tm_min, theTime.tm_sec);// the left part of the string is the one hidden whenever the column is too small.
 
     timelength += qof_print_date_buff (buff+timelength, len-timelength, t);// TODO mettre timelength au lieu de 9 !
     return strlen(buff);
@@ -760,7 +760,7 @@ gnc_parse_time_date (struct tm *parsed, const char * buff)
     secs = time(NULL); /* gnc_time(NULL) or time(NULL) ?? */
     gnc_localtime_r(&secs, parsed); /* t and tm_now are both UTC */
     tz = parsed->tm_gmtoff;
-    tz = (abs(tz) % 60) + 100 * (abs(tz) / 60)
+    tz = ((abs(tz) / 60) % 60) + 100 * ( (abs(tz) / 60) / 60 ) ;
     if (parsed->tm_gmtoff < 0) tz = -tz ;
     if (TZhourtxt[0] != '\0')
     {
@@ -772,7 +772,7 @@ gnc_parse_time_date (struct tm *parsed, const char * buff)
            if (hourtxt) {
                tz = atoi(TZtxt);
                parsed->tm_hour = atoi(hourtxt) ;
-               parsed->tm_gmtoff = (tz % 100) + 60 * (tz / 100);
+               parsed->tm_gmtoff = 60 * ( (tz % 100) + 60 * (tz / 100) ) ;
 	       if (tz < 0) parsed->tm_gmtoff = - (parsed->tm_gmtoff);
            } else {
                if (TZtxt) {
