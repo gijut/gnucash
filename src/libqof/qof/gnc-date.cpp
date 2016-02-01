@@ -674,21 +674,12 @@ buff[len - 1] = '\0'; */
     struct tm theTime;
     size_t timelength;
     time64 bt;
-    int tz; /* signed timezone in HHMM format */
-    char *TZname;
-    gchar * TZenv;
-    TZenv = g_strdup(g_getenv("TZ")); /* TZ should exist in env ! */
-    TZname = strtok (TZenv,"+-"); /* TODO: call gnc_g_date_time_new_from_timespec_* ? */
-    tz = atoi(strtok(NULL," ")) ;
-    g_free(TZenv);
     
-    t += 3600*(tz>0 ? 1 : -1)*(abs(tz)/100)
-	+ 60*(tz - (tz>0 ? 1 : -1)*(abs(tz)/100)*100);
     bt = t;
     if (!gnc_localtime_r(&bt, &theTime)) /* t and theTime are both *local* time */
- return 0;
+        return 0;
     
-    timelength = g_snprintf (buff, len, "%+05d %02d:%02d:%02d ", tz, theTime.tm_hour, theTime.tm_min, theTime.tm_sec);// the left part of the string is the one hidden whenever the column is too small.
+    timelength = g_snprintf (buff, len, "%c%02d%02d %02d:%02d:%02d ", theTime.tm_gmtoff < 0 ? '-' : '+', abs(theTime.tm_gmtoff) / 60, abs(theTime.tm_gmtoff) % 60, theTime.tm_hour, theTime.tm_min, theTime.tm_sec);// the left part of the string is the one hidden whenever the column is too small.
 
     timelength += qof_print_date_buff (buff+timelength, len-timelength, t);// TODO mettre timelength au lieu de 9 !
     return strlen(buff);
@@ -741,12 +732,6 @@ gnc_parse_time_date (struct tm *parsed, const char * buff)
     int iday, imonth, iyear;
     time64 secs;
     int tz; /* signed timezone in HHMM format */
-    char *TZname;
-    gchar * TZenv;
-    TZenv = g_strdup(g_getenv("TZ")); /* TZ should exist in env ! */
-    TZname = strtok (TZenv,"+-");
-    tz = atoi(strtok(NULL," ")) ;
-    g_free(TZenv);
     hourtxt = NULL;/* will stay NULL if TZ is not in buff */
     if (!parsed) return;
     parsed->tm_year=-1; /* means failure. */
@@ -757,75 +742,70 @@ gnc_parse_time_date (struct tm *parsed, const char * buff)
     tmp = dupe;
     TZhourtxt = strtok (tmp, ":");
     minutetxt = strtok (NULL, ":");
-    if (buff[0] == ':')
+    secs = time(NULL); /* gnc_time(NULL) or time(NULL) ?? */
+    gnc_localtime_r(&secs, parsed); /* t and tm_now are both UTC */
+    tz = parsed->tm_gmtoff;
+    tz = (abs(tz) % 60) + 100 * (abs(tz) / 60)
+    if (parsed->tm_gmtoff < 0) tz = -tz ;
+    if (TZhourtxt[0] != '\0')
     {
-        /* ":"  means: use current time */
-        tz = 0;
-        secs = time(NULL); /* gnc_time(NULL) or time(NULL) ?? */
-        gnc_localtime_r(&secs, parsed); /* t and tm_now are both UTC */
-    }
-    else
-    {
-     if (minutetxt) {/* "hh:mm date" and "hh:mm:ss date" are parsed. "hh date" is not recognized. "hh:mm" and "hh:mm:ss" imply today. Default value for the timezone is TZenv */
-	secondtxt = strtok (NULL, " ");
-	tmp = strtok (NULL, "\a");/* hack: \a is the audible bell, hope this one is never used in a date format ; tmp = minutetxt + strlen (strtok (minutetxt, " "))+1 might be better */
-	TZtxt = strtok (TZhourtxt, " ");
-	hourtxt = strtok (NULL, " ");
-	if (hourtxt) {
-	    tz = atoi(TZtxt);
-	    parsed->tm_hour = atoi(hourtxt) ;
-	} else {
-	    parsed->tm_hour = atoi(TZtxt) ;
-	}
-	if (tmp) {
-	    /*	+0200 02:00:00 2016-06-03
-	    * <       > TZhourtxt
-	    *	     <	> minutetxt
-	    *		<  > secondtxt
-	    *		  <	   > tmp
-	    * <    > TZtxt
-	    *	   <  > hourtxt  */
-	    parsed->tm_min = atoi(minutetxt) ;
-	    parsed->tm_sec = atoi(secondtxt) ;
-	} else {
-	    parsed->tm_min = atoi ( strtok (minutetxt, " ") );
-	    parsed->tm_sec = 0 ;
-	    tmp = secondtxt ;
-	    /*	+0200 02:00 2016-06-03
-	    * <       > TZhourtxt
-	    *	     <	> minutetxt
-	    *		<	 > secondtxt
-	    *		<	 > tmp
-	    * <    > TZtxt
-	    *	   <  > hourtxt  */
-	}
-     } else {
-	parsed->tm_hour = 11; /* so that it has the right date for all timezones, except daylight saving time in extreme east. */
-	tz = 0; /* so that it has the right date for all timezones, except daylight saving time in extreme east. */
-	parsed->tm_min = 0;
-	parsed->tm_sec = 0;
-	tmp = TZhourtxt;
-     }
-     if (!qof_scan_date (tmp, &iday, &imonth, &iyear))
-     {
-	// Couldn't parse date, use today
-            struct tm thetime;
-
-   memset (&thetime, 0, sizeof (struct tm));
-	gnc_tm_get_today_start (&thetime);
-                iyear = thetime.tm_year + 1900;
-                iday = thetime.tm_mday;
-                imonth = thetime.tm_mon + 1;
-     }
-     parsed->tm_mday = iday;
-     parsed->tm_mon  = imonth - 1;
-     parsed->tm_year = iyear - 1900;
+        if (minutetxt) {/* "hh:mm date" and "hh:mm:ss date" are parsed. "hh date" is not recognized. "hh:mm" and "hh:mm:ss" imply today. Default value for the timezone is TZenv */
+           secondtxt = strtok (NULL, " ");
+           tmp = strtok (NULL, "\a");/* hack: \a is the audible bell, hope this one is never used in a date format ; tmp = minutetxt + strlen (strtok (minutetxt, " "))+1 might be better */
+           TZtxt = strtok (TZhourtxt, " ");
+           hourtxt = strtok (NULL, " ");
+           if (hourtxt) {
+               tz = atoi(TZtxt);
+               parsed->tm_hour = atoi(hourtxt) ;
+           } else {
+               if (TZtxt) {
+                   parsed->tm_hour = atoi(TZtxt) ;
+               } else {
+                   parsed->tm_hour = 0 ; /* the case "::" falls here ? */
+               }
+           }
+           if (tmp) {
+               /* +0200 02:01:03 2016-06-03
+               * <+0200 02> TZhourtxt
+               *          <01> minutetxt
+               *             <03> secondtxt
+               *                <2016-06-03> tmp
+               * <+0200> TZtxt
+               *       <02> hourtxt  */
+               parsed->tm_min = atoi(minutetxt) ;
+               parsed->tm_sec = atoi(secondtxt) ;
+           } else {
+               /* +0200 02:01 2016-06-03
+               * <+0200 02> TZhourtxt
+               *          <01 2016-06-03> minutetxt */
+               parsed->tm_min = atoi ( strtok (minutetxt, " ") );
+               parsed->tm_sec = 0 ;
+               tmp = minutetxt ;
+               /* +0200 02:01 2016-06-03
+               * <+0200 02> TZhourtxt
+               *             <2016-06-03> minutetxt
+               *             <2016-06-03> tmp */
+           }
+        } else {
+           parsed->tm_hour = k_reference_time_TZ_hour;
+           tz = 0; /* so that it has the right date for all timezones, except daylight saving time in extreme east. */
+           parsed->tm_min = k_reference_time_TZ_min;
+           parsed->tm_sec = k_reference_time_TZ_sec_of_min;
+           tmp = TZhourtxt;
+        }
+        if (qof_scan_date (tmp, &iday, &imonth, &iyear))
+        {
+            parsed->tm_mday = iday;
+            parsed->tm_mon  = imonth - 1;
+            parsed->tm_year = iyear - 1900;
+        } /* else { Couldn't parse date, use today ; } */
     }
 
 
 
     parsed->tm_hour -= (tz>0 ? 1 : -1)*(abs(tz)/100);
     parsed->tm_min -=  (tz - (tz>0 ? 1 : -1)*(abs(tz)/100)*100);
+    parsed->tm_gmtoff = 0;
     
     g_free (dupe);
 
