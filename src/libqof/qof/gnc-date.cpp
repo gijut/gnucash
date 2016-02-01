@@ -79,7 +79,6 @@ const char *gnc_default_strftime_date_format =
     N_("%B %e, %Y")
 #endif
 
-static const int k_seconds_per_day = 24*3600 ;
 /* These should be editable */
 static int k_show_time = 1 ; /* 1 if showing the time, 0 otherwise */
 static int k_seconds_of_tolerance = 3600 ; /* gnucash registers should be reopened at most k_seconds_of_tolerance after midnight to let enter go nicely. */
