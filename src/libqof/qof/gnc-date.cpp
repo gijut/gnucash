@@ -33,7 +33,9 @@ extern "C"
 #include <libintl.h>
 #include <stdlib.h>
 #include "platform.h"
-#include "qof.h"
+#define CALLED_FROM_GNC_Date_CPP
+#include "qof.h" /* my qof.h implies #include "gnc-date-p.h" */
+#undef CALLED_FROM_GNC_Date_CPP
 
 #ifdef HAVE_LANGINFO_D_FMT
 # include <langinfo.h>
@@ -47,9 +49,6 @@ extern "C"
 }
 
 #include "gnc-date.h"
-#define CALLED_FROM_GNC_Date_CPP
-#include "gnc-date-p.h"
-#undef CALLED_FROM_GNC_Date_CPP
 #include "gnc-datetime.hpp"
 #include "gnc-timezone.hpp"
 #define BOOST_ERROR_CODE_HEADER_ONLY
