@@ -437,9 +437,9 @@ gnc_tree_util_split_reg_get_date_help (Timespec *ts)
         written += qof_strftime (string + written, sizeof (string) - written, _("%z %H:%M:%S %A %d %B %Y"), &tm);
         if (tm_gmt != NULL)
 	{
-            if (t<t_today+k_seconds_of_tolerance+k_seconds_per_day+k_reference_time_TZ+(tm.tm_gmtoff) && t >t_today+k_reference_time_TZ+(tm.tm_gmtoff) && tm_gmt.tm_hour == k_reference_time_TZ_hour && tm_gmt->tm_min == k_reference_time_TZ_min && tm_gmt->tm_sec == k_reference_time_TZ_sec_of_min)
+            if (t<t_today+k_seconds_of_tolerance+k_seconds_per_day+k_reference_time_TZ+(tm.tm_gmtoff) && t >t_today+k_reference_time_TZ+(tm.tm_gmtoff) && tm_gmt->tm_hour == k_reference_time_TZ_hour && tm_gmt->tm_min == k_reference_time_TZ_min && tm_gmt->tm_sec == k_reference_time_TZ_sec_of_min)
 	    {
-                g_snprintf (string + written, sizeof (string) - written, _(" (or timestamp of future Enter if before %d-th second of tomorrow)", k_seconds_of_tolerance));
+                g_snprintf (string + written, sizeof (string) - written, _(" (or timestamp of future keypress on Enter if before %d-th second of tomorrow)"), k_seconds_of_tolerance);
 	    }
             gnc_tm_free (tm_gmt);
 	}
@@ -466,8 +466,9 @@ gnc_tree_util_split_reg_parse_date (Timespec *ts, const char *datestr)
         day = tm.tm_mday;
         month = tm.tm_mon + 1;
         year = tm.tm_year + 1900;
+        GDate *readonly_threshold;
         GDate *d = g_date_new_dmy (day, month, year);
-        GDate *readonly_threshold = qof_book_get_autoreadonly_gdate (gnc_get_current_book());
+        readonly_threshold = qof_book_get_autoreadonly_gdate (gnc_get_current_book());
         if (g_date_compare (d, readonly_threshold) < 0)
         {
             g_warning("Entered date %s is before the \"auto-read-only threshold\"; resetting to the threshold.", datestr);
