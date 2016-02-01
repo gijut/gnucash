@@ -1,15 +1,3 @@
-2016-01-26 Daniel Goujot : rebase of patches posted on 201505280337 on gnucash-devel@gnucash.org
-
-	* Patch to show the timezone and time at left of date (enlarge date
-	* column of the ledger to see that). The time +0000 00:00:00 is
-	* implicit when loading gnucash files created without this patch. The
-	* time 1100Z is implicit when the user do not specify a time to a
-	* transaction in the future or the past. ":" is a shortcut for today.
-
-2016-01-26 Daniel Goujot 
-
-	* Starting adding patches to allow editing of posted times of transactions.
-
 2016-01-10 John Ralls 
 
 	* Release 2.6.11 (HEAD, maint)
