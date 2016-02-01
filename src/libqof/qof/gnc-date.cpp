@@ -81,9 +81,7 @@ const char *gnc_default_strftime_date_format =
     ;
 
 
-static const int k_seconds_per_day = 24*3600 ;
-
-/* These should be editable */
+/* These should be editable by the user interface */
 k_show_time = 1 ; /* 1 if showing the time, 0 otherwise */
 k_seconds_of_tolerance = 3600 ; /* gnucash registers should be reopened at most k_seconds_of_tolerance after midnight to let enter go nicely. */
 k_reference_time_TZ_hour = 11; //11 ; far west timezone on winter will prefer 12 which is incompatible with New Zealand on summer.
