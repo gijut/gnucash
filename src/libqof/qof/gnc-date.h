@@ -624,7 +624,7 @@ void gnc_tm_set_day_end (struct tm *tm)
 }
 
 /** The gnc_time64_get_day_start() routine will take the given time in
- *  seconds and adjust it to the last second of that day. */
+ *  seconds and adjust it to the first second of that day. */
 time64 gnc_time64_get_day_start(time64 time_val);
 
 /** The gnc_time64_get_day_end() routine will take the given time in
