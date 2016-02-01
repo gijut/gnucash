@@ -425,8 +425,8 @@ gchar *
 gnc_tree_util_split_reg_get_date_help (Timespec *ts)
 {
     char string[1024];
-    struct tm tm; /* tm was unused in gnucash-2.6.5/src/gnome-utils/gnc-tree-util-split-reg.c line 452 */
     struct tm * tm_gmt;
+    struct tm tm; /* tm was unused in gnucash-2.6.5/src/gnome-utils/gnc-tree-util-split-reg.c line 452 */
     time64 t, t_today, t_localtime;
     int written;
     
@@ -443,10 +443,10 @@ gnc_tree_util_split_reg_get_date_help (Timespec *ts)
     t = ts->tv_sec + (time64)(ts->tv_nsec / 1000000000.0);
     tm_gmt = gnc_localtime_r(&t) ;
     if (gnc_localtime_r(&t, &tm)) { t_today = time(NULL);  /* WARNING, tm is localtime ! */
-        written = g_snprintf (string, sizeof (string), "%+05d ", tm -> tm_gmtoff);// the left part of the string is the one hidden whenever the column is too small.
+        written = g_snprintf (string, sizeof (string), "%+05d ", tm . tm_gmtoff);// the left part of the string is the one hidden whenever the column is too small.
         written += qof_strftime (string + written, sizeof (string) - written, _("%z %H:%M:%S %A %d %B %Y"), &tm);
-        if (tm_gmt != NULL && t>t_today-14*3600 && t+(tm -> tm_gmtoff) <t_today+11*3600 && tm.tm_hour == 11 && tm.tm_min == 0 && tm.tm_sec == 0)
-            g_snprintf (string + written, sizeof (string) - written, _(" (or first Enter date if withing 25h of that)"));
+        if (tm_gmt != NULL && t<t_today+k_seconds_of_tolerance+k_seconds_per_day+reference_time_TZ+(tm -> tm_gmtoff) && t >t_today+reference_time_TZ+(tm -> tm_gmtoff) && tm_gmt.tm_hour == k_reference_time_TZ_hour && tm_gmt->tm_min == k_reference_time_TZ_min && tm_gmt->tm_sec == k_reference_time_TZ_sec_of_min)
+            g_snprintf (string + written, sizeof (string) - written, _(" (or timestamp of future Enter if before %d-th second of tomorrow)", k_seconds_of_tolerance));
         return g_strdup (string);
     }
     else

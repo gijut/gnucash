@@ -57,7 +57,6 @@ public:
     TZ_Ptr get (int year) const noexcept;
     static const unsigned int min_year; //1400
     static const unsigned int max_year; //9999
-    static const int reference_time_TZ; //11*60*60
 private:
     TZ_Vector zone_vector;
 #if PLATFORM(WINDOWS)
