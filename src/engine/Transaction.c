@@ -1982,13 +1982,13 @@ xaccTransSetDateEnteredSecs (Transaction *trans, time64 now)
 				     /* "%09ld : if "*/
 				         trans->date_posted.tv_nsec,
 					/* "%d:%d:%d %d-%d-%d +%d"*/
-					    tm_gmt->tm_gmt_hour,
-					       tm_gmt->tm_gmt_min,
-					          tm_gmt->tm_gmt_sec,
-						     tm_gmt->tm_gmt_year+1900,
-						        tm_gmt->tm_gmt_mon + 1,
-							   tm_gmt->tm_gmt_mday,
-							      tm_gmt->tm_gmt_gmtoff/60,
+					    tm_gmt->tm_hour,
+					       tm_gmt->tm_min,
+					          tm_gmt->tm_sec,
+						     tm_gmt->tm_year+1900,
+						        tm_gmt->tm_mon + 1,
+							   tm_gmt->tm_mday,
+							      tm_gmt->tm_gmtoff/60,
 					  /* "%d and now+"*/
 					      reference_time_TZ+(tm.tm_gmtoff),
 					    /* "%d, date_posted will be updated to now="*/
