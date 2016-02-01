@@ -34,7 +34,7 @@ extern "C"
 #define NANOS_PER_SECOND INT32_C(1000000000)
 /* The 6 constants below are defined in src/libqof/qof/gnc-date.cpp */
 /* #define  k_seconds_per_day INT32_C(24*3600) */
-static const int k_seconds_per_day; // 24*3600
+extern const int k_seconds_per_day; // 24*3600
 /* These should be editable */
 extern int k_show_time ; /* 1 if showing the time, 0 otherwise */
 extern int k_seconds_of_tolerance; //3600 ? gnucash registers should be closed at most k_seconds_of_tolerance after midnight to let enter go nicely.
