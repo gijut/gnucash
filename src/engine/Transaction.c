@@ -1959,14 +1959,14 @@ xaccTransSetDateEnteredSecs (Transaction *trans, time64 now)
         if (gnc_localtime_r(&t_posted, &tm))
         {
             DEBUG("xaccTransSetDateEnteredSecs parsed "
-	    "%d:%d:%d %d-%d-%d +%d from date_posted (*posted*, not *entered*) "
+	    "%d:%d:%d %d-%d-%d +%ld from date_posted (*posted*, not *entered*) "
 	                           "%" G_GUINT64_FORMAT " parsed from "
 				     "%" G_GUINT64_FORMAT "."
 				        "%09ld : if "
-					   "%d:%d:%d %d-%d-%d +%d"
+					   "%d:%d:%d %d-%d-%d +%ld"
 					   " matches 1100Z and is between now+"
-					     "%d and now+"
-					       "%d, date_posted will be updated to now="
+					     "%ld and now+"
+					       "%ld, date_posted will be updated to now="
 	 /* "%d:%d:%d %d-%d-%d +%d */             "%" G_GUINT64_FORMAT ".\n",
              tm.tm_hour,
 	        tm.tm_min,
