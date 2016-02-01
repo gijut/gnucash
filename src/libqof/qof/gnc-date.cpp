@@ -82,7 +82,7 @@ const char *gnc_default_strftime_date_format =
     ;
 
 
-const int k_seconds_per_day = 24*3600 ;
+/* const */ int k_seconds_per_day = 24*3600 ;
 
 /* These should be editable by the user interface */
 int k_show_time = 1 ; /* 1 if showing the time, 0 otherwise */
