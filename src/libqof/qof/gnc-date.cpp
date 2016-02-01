@@ -78,7 +78,18 @@ const char *gnc_default_strftime_date_format =
     /* Translators: call "man strftime" for possible values. */
     N_("%B %e, %Y")
 #endif
-    ;
+
+static const int k_seconds_per_day = 24*3600 ;
+/* These should be editable */
+static int k_show_time = 1 ; /* 1 if showing the time, 0 otherwise */
+static int k_seconds_of_tolerance = 3600 ; /* gnucash registers should be reopened at most k_seconds_of_tolerance after midnight to let enter go nicely. */
+static int k_reference_time_TZ_hour = 11; //11 ; far west timezone on winter will prefer 12 which is incompatible with New Zealand on summer.
+static int k_reference_time_TZ_min = 0; // should be <60
+static int k_reference_time_TZ_sec_of_min = 0; // should be <60
+static int k_reference_time_TZ = \
+  ( k_reference_time_TZ_hour * 60 \
+  + k_reference_time_TZ_min ) * 60 \
+  + k_reference_time_TZ_sec_of_min ; //(k_reference_time_TZ_hour*60+k_reference_time_TZ_min)*60+k_reference_time_TZ_sec_of_min, time at greenwich at which all transactions time defaults.
 
 /* This is now user configured through the gnome options system() */
 static QofDateFormat dateFormat = QOF_DATE_FORMAT_LOCALE;
@@ -1422,7 +1433,7 @@ Timespec gdate_to_timespec1100Z (GDate d)
 {
     Timespec res;
     res=gdate_to_timespec (d);
-    res.tv_sec += 11*3600;
+    res.tv_sec += k_reference_time_TZ;
     return res;
 }
 Timespec gdate_to_timespec (GDate d)

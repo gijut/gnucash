@@ -430,7 +430,6 @@ gnc_tree_util_split_reg_get_date_help (Timespec *ts)
     time64 t, t_today, t_localtime;
     int written;
     
-    
     memset (&tm, 0, sizeof (tm));
     t = ts->tv_sec + (time64)(ts->tv_nsec / 1000000000.0);
     tm_gmt = gnc_gmtime(&t) ;
