@@ -1958,8 +1958,44 @@ xaccTransSetDateEnteredSecs (Transaction *trans, time64 now)
     {
         if (gnc_localtime_r(&t_posted, &tm))
         {
-            DEBUG("xaccTransSetDateEnteredSecs parsed %d:%d:%d %d-%d-%d +%d from date_posted (*posted*, not *entered*) %" G_GUINT64_FORMAT " parsed from %" G_GUINT64_FORMAT ".%09ld : if %d:%d:%d %d-%d-%d +%d matches 1100Z and is between now+%d and now+%d, date_posted will be updated to now=%" G_GUINT64_FORMAT ".\n", tm->tm_hour, tm->tm_min, tm->tm_sec, tm->tm_year+1900, tm->tm_mon + 1, tm->tm_mday, tm->tm_gmtoff, t_posted, trans->date_posted.tv_sec, trans->date_posted.tv_nsec, tm_gmt->tm_gmt_hour, tm_gmt->tm_gmt_min, tm_gmt->tm_gmt_sec, tm_gmt->tm_gmt_year+1900, tm_gmt->tm_gmt_mon + 1, tm_gmt->tm_gmt_mday, tm_gmt->tm_gmt_gmtoff, reference_time_TZ+(tm -> tm_gmtoff),k_seconds_of_tolerance+k_seconds_per_day+reference_time_TZ+(tm -> tm_gmtoff),now);
-            if (t_posted<now+k_seconds_of_tolerance+k_seconds_per_day+reference_time_TZ+(tm -> tm_gmtoff) && t >now+reference_time_TZ+(tm -> tm_gmtoff) && tm_gmt->tm_hour == k_reference_time_TZ_hour && tm_gmt->tm_min == k_reference_time_TZ_min && tm_gmt->tm_sec == k_reference_time_TZ_sec_of_min)
+            DEBUG("xaccTransSetDateEnteredSecs parsed "
+	    "%d:%d:%d %d-%d-%d +%d from date_posted (*posted*, not *entered*) "
+	                           "%" G_GUINT64_FORMAT " parsed from "
+				     "%" G_GUINT64_FORMAT "."
+				        "%09ld : if "
+					   "%d:%d:%d %d-%d-%d +%d"
+					   " matches 1100Z and is between now+"
+					     "%d and now+"
+					       "%d, date_posted will be updated to now="
+	 /* "%d:%d:%d %d-%d-%d +%d */             "%" G_GUINT64_FORMAT ".\n",
+             tm.tm_hour,
+	        tm.tm_min,
+		   tm.tm_sec,
+		      tm.tm_year+1900,
+		         tm.tm_mon + 1,
+			    tm.tm_mday,
+			        tm.tm_gmtoff/60,
+	                        /* "%" G_GUINT64_FORMAT " parsed from " */
+				    t_posted,
+				  /* "%" G_GUINT64_FORMAT "."*/
+				      trans->date_posted.tv_sec,
+				     /* "%09ld : if "*/
+				         trans->date_posted.tv_nsec,
+					/* "%d:%d:%d %d-%d-%d +%d"*/
+					    tm_gmt->tm_gmt_hour,
+					       tm_gmt->tm_gmt_min,
+					          tm_gmt->tm_gmt_sec,
+						     tm_gmt->tm_gmt_year+1900,
+						        tm_gmt->tm_gmt_mon + 1,
+							   tm_gmt->tm_gmt_mday,
+							      tm_gmt->tm_gmt_gmtoff/60,
+					  /* "%d and now+"*/
+					      reference_time_TZ+(tm.tm_gmtoff),
+					    /* "%d, date_posted will be updated to now="*/
+					        k_seconds_of_tolerance+k_seconds_per_day+reference_time_TZ+(tm.tm_gmtoff),
+	                                       /* "%" G_GUINT64_FORMAT ".\n",*/
+						   now);
+            if (t_posted<now+k_seconds_of_tolerance+k_seconds_per_day+reference_time_TZ+(tm.tm_gmtoff) && t >now+reference_time_TZ+(tm.tm_gmtoff) && tm_gmt->tm_hour == k_reference_time_TZ_hour && tm_gmt->tm_min == k_reference_time_TZ_min && tm_gmt->tm_sec == k_reference_time_TZ_sec_of_min)
             {
                 xaccTransSetDatePostedTS(trans, &ts) ;
             }
