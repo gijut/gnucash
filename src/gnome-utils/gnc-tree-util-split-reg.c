@@ -425,7 +425,7 @@ gchar *
 gnc_tree_util_split_reg_get_date_help (Timespec *ts)
 {
     char string[1024];
-    struct tm tm; /* tm was unused in gnucash-2.6.5/src/gnome-utils/gnc-tree-util-split-reg.c line 452 */
+    struct tm * tm; /* tm was unused in gnucash-2.6.5/src/gnome-utils/gnc-tree-util-split-reg.c line 452 */
     time64 t, t_today, t_localtime;
     int written;
     
@@ -438,12 +438,10 @@ gnc_tree_util_split_reg_get_date_help (Timespec *ts)
     tz = atoi(strtok(NULL," ")) ;
     g_free(TZenv);
  
-    memset (&tm, 0, sizeof (tm));
-    t = ts->tv_sec + (time64)(ts->tv_nsec / 1000000000.0);
-    t_localtime = t + 3600*(tz>0 ? 1 : -1)*((tz > 0 ? tz : -tz)/100)
-        + 60*(tz - (tz>0 ? 1 : -1)*((tz > 0 ? tz : -tz)/100)*100); /* WARNING, t_localtime is localtime ! */
-    if (gnc_localtime_r(&t_localtime, &tm)) { t_today = time(NULL);  /* WARNING, tm is localtime ! */
-        written = g_snprintf (string, sizeof (string), "%+05d ", tz);// the left part of the string is the one hidden whenever the column is too small.
+#define GNC_RESPONSE_NEW    1
+    t = ts->tv_sec + (time64)(ts->tv_nsec / NANOS_PER_SECOND);
+    if (gnc_localtime_r(&t, &tm)) { t_today = time(NULL);  /* WARNING, tm is localtime ! */
+        written = g_snprintf (string, sizeof (string), "%+05d ", tm -> );// the left part of the string is the one hidden whenever the column is too small.
         written += qof_strftime (string + written, sizeof (string) - written, _("%H:%M:%S %A %d %B %Y"), &tm);  /* WARNING, tm is localtime ! */
         if (t>t_today-14*3600 && t<t_today+11*3600 && tm.tm_hour == 11 && tm.tm_min == 0 && tm.tm_sec == 0)
             g_snprintf (string + written, sizeof (string) - written, _(" (or first Enter date if withing 25h of that)"));

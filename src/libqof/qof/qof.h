@@ -72,6 +72,7 @@
 #include "qofid.h"
 #include "qoflog.h"
 #include "gnc-date.h"
+#include "gnc-date-p.h" /* for NANOS_PER_SECOND */
 #include "gnc-numeric.h"
 #include "qofutil.h"
 #include "guid.h"
