@@ -47,7 +47,9 @@ extern "C"
 }
 
 #include "gnc-date.h"
+#define CALLED_FROM_GNC_Date_CPP
 #include "gnc-date-p.h"
+#undef CALLED_FROM_GNC_Date_CPP
 #include "gnc-datetime.hpp"
 #include "gnc-timezone.hpp"
 #define BOOST_ERROR_CODE_HEADER_ONLY

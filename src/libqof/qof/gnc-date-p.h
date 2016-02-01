@@ -34,6 +34,7 @@ extern "C"
 #define NANOS_PER_SECOND INT32_C(1000000000)
 /* The 6 constants below are defined in src/libqof/qof/gnc-date.cpp */
 /* #define  k_seconds_per_day INT32_C(24*3600) */
+#ifndef CALLED_FROM_GNC_Date_CPP
 extern const int k_seconds_per_day; // 24*3600
 /* These should be editable */
 extern int k_show_time ; /* 1 if showing the time, 0 otherwise */
@@ -42,6 +43,7 @@ extern int k_reference_time_TZ_hour; //11 ; far west timezone on winter will pre
 extern int k_reference_time_TZ_min; //0, should be <60
 extern int k_reference_time_TZ_sec_of_min; //0, should be <60
 extern int k_reference_time_TZ; //(k_reference_time_TZ_hour*60+k_reference_time_TZ_min)*60+k_reference_time_TZ_sec_of_min, time at greenwich at which all transactions time defaults.
+#endif
 
 
 /** Convert a given date/time format from UTF-8 to an encoding suitable for the
