@@ -78,6 +78,10 @@ const char *gnc_default_strftime_date_format =
     /* Translators: call "man strftime" for possible values. */
     N_("%B %e, %Y")
 #endif
+    ;
+
+
+static const int k_seconds_per_day = 24*3600 ;
 
 /* These should be editable */
 static int k_show_time = 1 ; /* 1 if showing the time, 0 otherwise */
