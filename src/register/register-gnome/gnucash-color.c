@@ -79,9 +79,9 @@ gnucash_color_alloc (gushort red, gushort green, gushort blue)
         gnucash_color_init ();
 
     c = g_new0 (GdkColor, 1);
-    c->red = red;
-    c->green = green;
-    c->blue = blue;
+    c->red = 65535 - red;
+    c->green = 65535 - green;
+    c->blue = 65535 - blue;
 
     g_return_val_if_fail (gdk_colormap_alloc_color (colormap, c, FALSE, TRUE), 0);
 
@@ -95,6 +95,9 @@ gnucash_color_alloc_gdk (GdkColor *c)
     GdkColormap *colormap = gtk_widget_get_default_colormap ();
 
     g_return_if_fail (c != NULL);
+    c->red = 65535 - c->red;
+    c->green = 65535 - c->green;
+    c->blue = 65535 - c->blue;
 
     g_assert (gdk_colormap_alloc_color (colormap, c,
                                         FALSE, TRUE));
@@ -111,6 +114,9 @@ gnucash_color_alloc_name (const char *name, GdkColor *c)
 
     gdk_color_parse (name, c);
     c->pixel = 0;
+    c->red = 65535 - c->red;
+    c->green = 65535 - c->green;
+    c->blue = 65535 - c->blue;
     g_assert (gdk_colormap_alloc_color (colormap, c,
                                         FALSE, TRUE));
 }
@@ -124,7 +130,7 @@ GdkColor *
 gnucash_color_argb_to_gdk (guint32 argb)
 {
     GdkColor *color;
-    const guint32 key = 0xffffff - (0xffffff & argb);
+    const guint32 key = argb;
     guint32 *newkey;
 
     color = g_hash_table_lookup (color_hash_table, &key);
