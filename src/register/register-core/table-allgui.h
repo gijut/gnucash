@@ -265,6 +265,33 @@ static const guint32 reg_colors_default [] =
     0xFF0000,     // COLOR_NEGATIVE
 };
 
+/** Alternative color tables for vision impaired people.
+ * The colors in this array are ordered according to the RegisterColor Enum
+ * Be careful to respect this order !
+ */
+static const guint32 reg_colors_reverse_video_gtkrc [] =
+{
+    0x000000,     // COLOR_UNKNOWN_BG
+    0x000020,     // COLOR_HEADER_BG
+    0x002000,     // COLOR_PRIMARY_BG
+    0x002020,     // COLOR_PRIMARY_BG_ACTIVE
+    0x200000,     // COLOR_SECONDARY_BG
+    0x200020,     // COLOR_SECONDARY_BG_ACTIVE
+    0x202000,     // COLOR_SPLIT_BG
+    0x202020,     // COLOR_SPLIT_BG_ACTIVE
+
+    0xFFDFFF,     // COLOR_UNKNOWN_FG
+    0xDFDFFF,     // COLOR_HEADER_FG
+    0xFFFFFF,     // COLOR_PRIMARY_FG
+    0xFFFFDF,     // COLOR_PRIMARY_FG_ACTIVE
+    0xDFFFFF,     // COLOR_SECONDARY_FG
+    0xDFFFDF,     // COLOR_SECONDARY_FG_ACTIVE
+    0xFFFFFF,     // COLOR_SPLIT_FG
+    0xFFFFDF,     // COLOR_SPLIT_FG_ACTIVE
+
+    0x777777,     // COLOR_NEGATIVE
+};
+
 /* The colors in this array are ordered according to the RegisterColor Enum
  * Be careful to respect this order !
  */

@@ -963,7 +963,7 @@ gnc_entry_ledger_get_fg_color (VirtualLocation virt_loc,
                                gpointer user_data)
 {
     GncEntryLedger *ledger = user_data;
-    return gnc_entry_ledger_get_color_internal (virt_loc, ledger, reg_colors_default, TRUE);
+    return gnc_entry_ledger_get_color_internal (virt_loc, ledger, reg_colors_reverse_video, TRUE);
 }
 
 static guint32
@@ -971,7 +971,7 @@ gnc_entry_ledger_get_gtkrc_fg_color (VirtualLocation virt_loc,
                                      gpointer user_data)
 {
     GncEntryLedger *ledger = user_data;
-    return gnc_entry_ledger_get_color_internal (virt_loc, ledger, reg_colors_gtkrc, TRUE);
+    return gnc_entry_ledger_get_color_internal (virt_loc, ledger, reg_colors_reverse_video_gtkrc, TRUE);
 }
 
 static guint32
@@ -983,7 +983,7 @@ gnc_entry_ledger_get_bg_color (VirtualLocation virt_loc,
     if (hatching)
         *hatching = FALSE;
 
-    return gnc_entry_ledger_get_color_internal (virt_loc, ledger, reg_colors_default, FALSE);
+    return gnc_entry_ledger_get_color_internal (virt_loc, ledger, reg_colors_reverse_video, FALSE);
 }
 
 static guint32
@@ -995,7 +995,7 @@ gnc_entry_ledger_get_gtkrc_bg_color (VirtualLocation virt_loc,
     if (hatching)
         *hatching = FALSE;
 
-    return gnc_entry_ledger_get_color_internal (virt_loc, ledger, reg_colors_gtkrc, FALSE);
+    return gnc_entry_ledger_get_color_internal (virt_loc, ledger, reg_colors_reverse_video_gtkrc, FALSE);
 }
 
 /* SAVE CELLS */

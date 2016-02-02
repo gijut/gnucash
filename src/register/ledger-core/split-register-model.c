@@ -659,7 +659,7 @@ gnc_split_register_get_gtkrc_fg_color (VirtualLocation virt_loc,
                                        gpointer user_data)
 {
     SplitRegister *reg = user_data;
-    return gnc_split_register_get_fg_color_internal (virt_loc, reg, reg_colors_gtkrc);
+    return gnc_split_register_get_fg_color_internal (virt_loc, reg, reg_colors_reverse_video_gtkrc);
 }
 
 static guint32
@@ -686,7 +686,7 @@ gnc_split_register_get_gtkrc_bg_color (VirtualLocation virt_loc,
     if (hatching)
         *hatching = FALSE;
 
-    return gnc_split_register_get_color_internal (virt_loc, reg, reg_colors_gtkrc, FALSE);
+    return gnc_split_register_get_color_internal (virt_loc, reg, reg_colors_reverse_video_gtkrc, FALSE);
 }
 
 static guint32
