@@ -723,7 +723,7 @@ draw_cell (GnucashGrid *grid,
     gdk_gc_set_clip_rectangle (grid->gc, NULL);
 
 exit:
-    pango_font_description_set_style (font, PANGO_STYLE_NORMAL);
+    pango_font_description_set_style (font, PANGO_STYLE_BOLD);
     pango_context_set_font_description (context, font);
     pango_font_description_free (font);
     g_object_unref (layout);
