@@ -797,7 +797,7 @@ gnc_parse_time_date (struct tm *parsed, const char * buff)
                *          <01 2016-06-03> minutetxt */
                parsed->tm_min = atoi ( strtok (minutetxt, " ") );
                parsed->tm_sec = 0 ;
-               tmp = minutetxt ;
+               tmp = secondtxt ;
                /* +0200 02:01 2016-06-03
                * <+0200 02> TZhourtxt
                *             <2016-06-03> minutetxt

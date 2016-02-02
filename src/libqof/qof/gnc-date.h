@@ -181,7 +181,7 @@ struct tm* gnc_localtime_r (const time64 *secs, struct tm* time);
  *  \param secs: Seconds since 00:00:01 UTC 01 January 1970 (negative values
  * are seconds before that moment)
  *  \return A struct tm*, allocated on the heap. Must be freed with gnc_tm_free()
- *  The time is UTC (?).
+ *  The time is UTC.
  */
 struct tm* gnc_gmtime (const time64 *secs);
 
