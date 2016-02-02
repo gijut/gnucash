@@ -124,7 +124,7 @@ GdkColor *
 gnucash_color_argb_to_gdk (guint32 argb)
 {
     GdkColor *color;
-    const guint32 key = argb;
+    const guint32 key = 0xffffff - (0xffffff & argb);
     guint32 *newkey;
 
     color = g_hash_table_lookup (color_hash_table, &key);
