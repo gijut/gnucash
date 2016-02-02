@@ -762,8 +762,13 @@ gnc_parse_time_date (struct tm *parsed, const char * buff)
     tz = parsed->tm_gmtoff;
     tz = ((abs(tz) / 60) % 60) + 100 * ( (abs(tz) / 60) / 60 ) ;
     if (parsed->tm_gmtoff < 0) tz = -tz ;
-    if (TZhourtxt[0] != '\0')
-    {
+    if (TZhourtxt == NULL) {
+           parsed->tm_hour = k_reference_time_TZ_hour;
+           parsed->tm_gmtoff = 0;
+           parsed->tm_min = k_reference_time_TZ_min;
+           parsed->tm_sec = k_reference_time_TZ_sec_of_min;
+           tmp = TZhourtxt;
+    } else if (TZhourtxt[0] != '\0') {
         if (minutetxt) {/* "hh:mm date" and "hh:mm:ss date" are parsed. "hh date" is not recognized. "hh:mm" and "hh:mm:ss" imply today. Default value for the timezone is TZenv */
            secondtxt = strtok (NULL, " ");
            tmp = strtok (NULL, "\a");/* hack: \a is the audible bell, hope this one is never used in a date format ; tmp = minutetxt + strlen (strtok (minutetxt, " "))+1 might be better */
@@ -797,7 +802,7 @@ gnc_parse_time_date (struct tm *parsed, const char * buff)
                *          <01 2016-06-03> minutetxt */
                parsed->tm_min = atoi ( strtok (minutetxt, " ") );
                parsed->tm_sec = 0 ;
-               tmp = secondtxt ;
+               tmp = minutetxt ;
                /* +0200 02:01 2016-06-03
                * <+0200 02> TZhourtxt
                *             <2016-06-03> minutetxt
