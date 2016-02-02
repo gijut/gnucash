@@ -758,10 +758,10 @@ gnc_parse_time_date (struct tm *parsed, const char * buff)
     TZhourtxt = strtok (tmp, ":");
     minutetxt = strtok (NULL, ":");
     secs = time(NULL); /* gnc_time(NULL) or time(NULL) ?? */
-    gnc_localtime_r(&secs, parsed); /* t and tm_now are both UTC */
+    gnc_localtime_r(&secs, parsed);
     tz = parsed->tm_gmtoff;
     if (TZhourtxt != NULL && minutetxt) {
-        if (TZhourtxt[0] != '\0') {/* "hh:mm date" and "hh:mm:ss date" are parsed. "hh date" is not recognized. "hh:mm" and "hh:mm:ss" imply today. Default value for the timezone is TZenv */
+        if (dupe[0] != ':') {/* "hh:mm date" and "hh:mm:ss date" are parsed. "hh date" is not recognized. "hh:mm" and "hh:mm:ss" imply today. Default value for the timezone is TZenv */
             secondtxt = strtok (NULL, " ");
             tmp = strtok (NULL, "\a");/* hack: \a is the audible bell, hope this one is never used in a date format ; tmp = minutetxt + strlen (strtok (minutetxt, " "))+1 might be better */
             TZtxt = strtok (TZhourtxt, " ");
