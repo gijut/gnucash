@@ -467,8 +467,9 @@ gnc_tree_util_split_reg_parse_date (Timespec *ts, const char *datestr)
         month = tm.tm_mon + 1;
         year = tm.tm_year + 1900;
         GDate *readonly_threshold;
-        GDate *d = g_date_new_dmy (day, month, year);
+        GDate *d;
         readonly_threshold = qof_book_get_autoreadonly_gdate (gnc_get_current_book());
+        d = g_date_new_dmy (day, month, year);
         if (g_date_compare (d, readonly_threshold) < 0)
         {
             g_warning("Entered date %s is before the \"auto-read-only threshold\"; resetting to the threshold.", datestr);
