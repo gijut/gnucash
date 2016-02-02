@@ -181,7 +181,7 @@ struct tm* gnc_localtime_r (const time64 *secs, struct tm* time);
  *  \param secs: Seconds since 00:00:01 UTC 01 January 1970 (negative values
  * are seconds before that moment)
  *  \return A struct tm*, allocated on the heap. Must be freed with gnc_tm_free()
- *  The time is UTC.
+ *  The time is UTC (?).
  */
 struct tm* gnc_gmtime (const time64 *secs);
 
@@ -487,45 +487,44 @@ gchar dateSeparator(void);
 gsize qof_strftime(gchar *buf, gsize max, const gchar *format,
                    const struct tm *tm);
 
-/* qof_print_date_tm_buff  Convert hour, minute, second, day, month and year values to a date string in UTC +0000 timezone.
+/** qof_print_date_tm_buff  Convert hour, minute, second, day, month and year values to a date string in UTC +0000 timezone.
 
   Date converted as day / month / year integers into a localized string
   representation with qof_print_date_dmy_buff; Time converted in 24h format.
 
-param   buff - pointer to previously allocated character array; its size
+@param   buff - pointer to previously allocated character array; its size
          must be at lease MAX_DATE_LENGTH bytes.
-param   date - struct tm with the time and date
+@param   date - struct tm with the time and date
 
-return length of string created in buff.
+@return length of string created in buff.
 
 Globals: global dateFormat value
 */
 size_t qof_print_date_tm_buff (char * buff, size_t len, struct tm date);
-/*  does the real job of qof_print_date_tm_buff: */ 
+/**  does the real job of qof_print_date_tm_buff: */ 
 size_t gnc_print_date_time_buff (char * buff, size_t len, time64 t);
 
-/*   gnc_parse_time_date parsing tm (+0000) (from %+05d %d:%d:%d then the date) in datestr */
+/**   gnc_parse_time_date parsing tm (+0000) (from %+05d %d:%d:%d then the date) in datestr */
 void gnc_parse_time_date (struct tm *parsed, const char * datestr) ;
-/* gnc_print_date_time  Convert hour, minute, second, day, month and year values to a date string in UTC +0000 timezone.
+/** \brief  Convert hour, minute, second, day, month and year values to a date string in UTC +0000 timezone.
 
   Date converted as day / month / year integers into a localized string
   representation with qof_print_date_buff; Time converted in 24h format. */
 const char * gnc_print_date_time (Timespec ts) ;
 
-/** qof_print_date_dmy_buff
- *    Convert a date as day / month / year integers into a localized string
+/** \brief Convert a date as day / month / year integers into a localized string
  *    representation
  *
- * Args:   buff - pointer to previously allocated character array; its size
+ * @param   buff - pointer to previously allocated character array; its size
  *                must be at lease MAX_DATE_LENTH bytes.
- *         len - length of the buffer, in bytes.
- *         day - day of the month as 1 ... 31
- *         month - month of the year as 1 ... 12
- *         year - year (4-digit)
+ * @param   len - length of the buffer, in bytes.
+ * @param   day - day of the month as 1 ... 31
+ * @param   month - month of the year as 1 ... 12
+ * @param   year - year (4-digit)
  *
- * Returns: number of characters printed
+ * @Return: number of characters printed
  *
- * Globals: global dateFormat value
+ * @note Globals: global dateFormat value
  **/
 size_t qof_print_date_dmy_buff (gchar * buff, size_t buflen, int day, int month, int year);
 
